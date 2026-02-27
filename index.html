@@ -3,126 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JARVIS SUPREME MK-16</title>
+    <title>JARVIS BRIDGE - TIPMINER ELITE</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #010409; color: #00f2ff; font-family: 'Rajdhani', sans-serif; height: 100vh; overflow: hidden; margin: 0; display: flex; align-items: center; justify-content: center; }
-        .hud-container { background: rgba(5, 12, 22, 0.98); border: 2px solid #00f2ff; border-radius: 40px; width: 92%; max-width: 380px; padding: 25px; box-shadow: 0 0 40px rgba(0, 242, 255, 0.15); text-align: center; position: relative; }
-        .scanner-ring { width: 140px; height: 140px; border: 3px solid rgba(0, 242, 255, 0.1); border-top: 3px solid #00f2ff; border-radius: 50%; margin: 0 auto 20px; animation: spin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite; display: flex; align-items: center; justify-content: center; }
-        .scanner-ring.active { border-top-color: #ffcc00; animation-duration: 0.6s; box-shadow: 0 0 20px rgba(255, 204, 0, 0.3); }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        .pedra { width: 36px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; border: 1px solid rgba(255,255,255,0.15); transition: all 0.3s; }
-        .glow-text { text-shadow: 0 0 10px rgba(0, 242, 255, 0.7); }
-        input::placeholder { color: rgba(0, 242, 255, 0.4); }
+        body { background: #010409; margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; color: #00f2ff; }
+        
+        /* Moldura de Elite */
+        .hud-overlay { position: fixed; inset: 0; border: 15px solid #010409; pointer-events: none; z-index: 100; border-image: linear-gradient(to bottom, #010409, #00f2ff, #010409) 1; }
+        
+        /* Cabeçalho Jarvis */
+        .jarvis-header { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: rgba(1, 4, 9, 0.9); display: flex; align-items: center; justify-content: space-between; px: 20px; z-index: 101; border-bottom: 1px solid #00f2ff; padding: 0 15px; }
+        
+        /* O Motor (TipMiner) */
+        iframe { width: 100%; height: calc(100vh - 60px); margin-top: 60px; border: none; }
+        
+        .status-dot { width: 10px; height: 10px; background: #00f2ff; border-radius: 50%; box-shadow: 0 0 10px #00f2ff; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
 </head>
-<body onclick="unlockAudio()">
+<body onclick="startJarvis()">
 
-    <div id="login-screen" class="hud-container z-50">
-        <h1 class="text-3xl font-bold font-[Orbitron] italic mb-8 glow-text">JARVIS MK-16</h1>
-        <div class="space-y-4">
-            <input type="password" id="key" placeholder="CHAVE MESTRA" class="w-full bg-black/50 border-2 border-cyan-900 rounded-2xl p-4 text-center text-cyan-400 outline-none focus:border-cyan-400">
-            <button onclick="startSystem()" class="w-full bg-cyan-600 hover:bg-cyan-400 text-black font-black py-4 rounded-2xl transition-all uppercase tracking-widest">Ativar Sistema</button>
+    <div class="hud-overlay"></div>
+    
+    <header class="jarvis-header">
+        <div class="flex items-center gap-2">
+            <div class="status-dot"></div>
+            <span style="font-weight: bold; letter-spacing: 2px;">JARVIS MK-17</span>
         </div>
-        <p class="text-[10px] mt-6 opacity-40 uppercase">Optimized for Motorola Mobility G-Series</p>
-    </div>
+        <div id="clock" class="text-white font-mono font-bold">00:00:00</div>
+        <div class="text-[10px] text-cyan-500 uppercase">TipMiner Premium Link</div>
+    </header>
 
-    <div id="main-hud" class="hud-container hidden">
-        <div id="ring-arc" class="scanner-ring">
-            <div class="text-center">
-                <span id="percentage" class="text-4xl font-black text-white block">0%</span>
-                <span class="text-[10px] uppercase tracking-widest opacity-60">Probabilidade</span>
-            </div>
-        </div>
-        
-        <div id="display-status" class="bg-cyan-950/30 border border-cyan-800 rounded-2xl py-3 mb-6">
-            <h2 id="status-text" class="text-xl font-bold uppercase italic tracking-tighter">Sincronizando...</h2>
-        </div>
-
-        <div id="history-bar" class="flex gap-2 justify-center min-h-[50px] overflow-hidden">
-            </div>
-    </div>
+    <iframe src="https://www.tipminer.com/br/historico/blaze/double" id="engine"></iframe>
 
     <script>
-        let history = [], lastSeed = null, audioEnabled = false;
         const speech = window.speechSynthesis;
+        let audioActive = false;
 
-        function unlockAudio() { if(!audioEnabled) { speak(""); audioEnabled = true; } }
-        function speak(t) { speech.cancel(); const v = new SpeechSynthesisUtterance(t); v.lang='pt-BR'; v.rate=1.4; v.volume=1; speech.speak(v); }
-
-        function startSystem() {
-            if(document.getElementById('key').value.toUpperCase() === 'MARK85') {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('main-hud').classList.remove('hidden');
-                speak("Sistema operacional. Buscando dados da Blaze.");
-                initCore();
+        function startJarvis() {
+            if(!audioActive) {
+                const welcome = new SpeechSynthesisUtterance("Ponte de dados estabelecida. TipMiner conectado. Jarvis operacional.");
+                welcome.lang = 'pt-BR';
+                welcome.rate = 1.3;
+                speech.speak(welcome);
+                audioActive = true;
             }
         }
 
-        function initCore() {
-            const connect = () => {
-                // Endpoint estabilizado para evitar bloqueio de conteúdo misto
-                const socket = new WebSocket('wss://api-v2.blaze.com/replication/graph/double');
-                
-                socket.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
-                    const payload = data.payload;
-
-                    if (payload && (payload.status === 'complete' || payload.roll !== undefined)) {
-                        const currentRoll = payload.roll;
-                        const currentColor = payload.color;
-
-                        if (currentRoll !== undefined && lastSeed !== (currentRoll + "-" + currentColor)) {
-                            lastSeed = currentRoll + "-" + currentColor;
-                            history.unshift({v: currentRoll, c: currentColor});
-                            if(history.length > 8) history.pop();
-                            updateInterface();
-                        }
-                    }
-                };
-
-                socket.onclose = () => setTimeout(connect, 2000);
-                socket.onerror = () => socket.close();
-            };
-            connect();
-        }
-
-        function updateInterface() {
-            const bar = document.getElementById('history-bar');
-            const colors = ['bg-slate-100 text-black', 'bg-red-600 text-white', 'bg-slate-800 text-white'];
+        // Relógio de precisão para entradas
+        setInterval(() => {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('clock').innerText = `${h}:${m}:${s}`;
             
-            bar.innerHTML = history.map(p => `
-                <div class="pedra ${colors[p.c]} shadow-lg shadow-black/50">${p.v}</div>
-            `).join('');
-
-            processLogic();
-        }
-
-        function processLogic() {
-            const status = document.getElementById('status-text');
-            const perc = document.getElementById('percentage');
-            const ring = document.getElementById('ring-arc');
-            
-            setInterval(() => {
-                const now = new Date();
-                const sec = now.getSeconds();
-
-                if(history.length > 0 && sec >= 58) {
-                    const prediction = history[0].c === 1 ? "PRETO" : "VERMELHO";
-                    status.innerText = "ALVO: " + prediction;
-                    status.classList.add('text-yellow-400');
-                    perc.innerText = "99%";
-                    ring.classList.add('active');
-                    if(sec === 59) speak(prediction);
-                } else {
-                    status.innerText = "Rastreando Dados...";
-                    status.classList.remove('text-yellow-400');
-                    perc.innerText = "0%";
-                    ring.classList.remove('active');
-                }
-            }, 500);
-        }
+            // Alerta de proximidade de rodada (segundo 55)
+            if(s == 55 && audioActive) {
+                const alert = new SpeechSynthesisUtterance("Analise a tendência.");
+                alert.lang = 'pt-BR';
+                alert.rate = 1.5;
+                alert.volume = 0.5;
+                speech.speak(alert);
+            }
+        }, 1000);
     </script>
 </body>
 </html>
