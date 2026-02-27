@@ -3,95 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JARVIS MOTO G - HYPER CORE</title>
+    <title>JARVIS SUPREME MK-16</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #010409; color: white; font-family: 'Rajdhani', sans-serif; overflow: hidden; height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .glass { background: rgba(10, 20, 30, 0.95); border: 1px solid #00f2ff; border-radius: 30px; padding: 2rem; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 0 30px rgba(0, 242, 255, 0.2); }
-        .ring { width: 120px; height: 120px; border: 4px solid #1a1d23; border-top: 4px solid #00f2ff; border-radius: 50%; margin: 0 auto 1.5rem; animation: spin 1s linear infinite; display: flex; align-items: center; justify-content: center; }
-        .ring.active { border-top-color: #ffcc00; animation-duration: 0.5s; }
+        body { background: #010409; color: #00f2ff; font-family: 'Rajdhani', sans-serif; height: 100vh; overflow: hidden; margin: 0; display: flex; align-items: center; justify-content: center; }
+        .hud-container { background: rgba(5, 12, 22, 0.98); border: 2px solid #00f2ff; border-radius: 40px; width: 92%; max-width: 380px; padding: 25px; box-shadow: 0 0 40px rgba(0, 242, 255, 0.15); text-align: center; position: relative; }
+        .scanner-ring { width: 140px; height: 140px; border: 3px solid rgba(0, 242, 255, 0.1); border-top: 3px solid #00f2ff; border-radius: 50%; margin: 0 auto 20px; animation: spin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite; display: flex; align-items: center; justify-content: center; }
+        .scanner-ring.active { border-top-color: #ffcc00; animation-duration: 0.6s; box-shadow: 0 0 20px rgba(255, 204, 0, 0.3); }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        .pedra { width: 35px; height: 45px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; }
+        .pedra { width: 36px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; border: 1px solid rgba(255,255,255,0.15); transition: all 0.3s; }
+        .glow-text { text-shadow: 0 0 10px rgba(0, 242, 255, 0.7); }
+        input::placeholder { color: rgba(0, 242, 255, 0.4); }
     </style>
 </head>
-<body onclick="enableAudio()">
+<body onclick="unlockAudio()">
 
-    <div id="login" class="glass">
-        <h1 style="font-family: 'Orbitron'; font-size: 1.5rem; margin-bottom: 1.5rem;">JARVIS MK-XVI</h1>
-        <input type="password" id="key" placeholder="CHAVE: MARK85" style="width: 100%; background: #000; border: 1px solid #333; padding: 1rem; border-radius: 15px; color: #00f2ff; text-align: center; margin-bottom: 1rem;">
-        <button onclick="auth()" style="width: 100%; background: #00f2ff; color: #000; padding: 1rem; border-radius: 15px; font-weight: bold;">CONECTAR</button>
+    <div id="login-screen" class="hud-container z-50">
+        <h1 class="text-3xl font-bold font-[Orbitron] italic mb-8 glow-text">JARVIS MK-16</h1>
+        <div class="space-y-4">
+            <input type="password" id="key" placeholder="CHAVE MESTRA" class="w-full bg-black/50 border-2 border-cyan-900 rounded-2xl p-4 text-center text-cyan-400 outline-none focus:border-cyan-400">
+            <button onclick="startSystem()" class="w-full bg-cyan-600 hover:bg-cyan-400 text-black font-black py-4 rounded-2xl transition-all uppercase tracking-widest">Ativar Sistema</button>
+        </div>
+        <p class="text-[10px] mt-6 opacity-40 uppercase">Optimized for Motorola Mobility G-Series</p>
     </div>
 
-    <div id="hud" class="glass" style="display: none;">
-        <div id="ring-box" class="ring"><span id="perc" style="transform: rotate(-360deg) !important; display: inline-block; font-weight: 900; font-size: 1.5rem;">0%</span></div>
-        <h2 id="status" style="text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem;">Sincronizando...</h2>
-        <div id="hist" style="display: flex; gap: 5px; justify-content: center; min-height: 45px;"></div>
+    <div id="main-hud" class="hud-container hidden">
+        <div id="ring-arc" class="scanner-ring">
+            <div class="text-center">
+                <span id="percentage" class="text-4xl font-black text-white block">0%</span>
+                <span class="text-[10px] uppercase tracking-widest opacity-60">Probabilidade</span>
+            </div>
+        </div>
+        
+        <div id="display-status" class="bg-cyan-950/30 border border-cyan-800 rounded-2xl py-3 mb-6">
+            <h2 id="status-text" class="text-xl font-bold uppercase italic tracking-tighter">Sincronizando...</h2>
+        </div>
+
+        <div id="history-bar" class="flex gap-2 justify-center min-h-[50px] overflow-hidden">
+            </div>
     </div>
 
     <script>
-        let db = [], lastRoll = null, audioUnlocked = false;
-        const synth = window.speechSynthesis;
+        let history = [], lastSeed = null, audioEnabled = false;
+        const speech = window.speechSynthesis;
 
-        function enableAudio() { if(!audioUnlocked) { speak("Sistema Ativo"); audioUnlocked = true; } }
-        function speak(t) { synth.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang='pt-BR'; u.rate=1.4; synth.speak(u); }
+        function unlockAudio() { if(!audioEnabled) { speak(""); audioEnabled = true; } }
+        function speak(t) { speech.cancel(); const v = new SpeechSynthesisUtterance(t); v.lang='pt-BR'; v.rate=1.4; v.volume=1; speech.speak(v); }
 
-        function auth() {
-            if(document.getElementById('key').value === 'MARK85') {
-                document.getElementById('login').style.display = 'none';
-                document.getElementById('hud').style.display = 'block';
-                startStream();
+        function startSystem() {
+            if(document.getElementById('key').value.toUpperCase() === 'MARK85') {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-hud').classList.remove('hidden');
+                speak("Sistema operacional. Buscando dados da Blaze.");
+                initCore();
             }
         }
 
-        function startStream() {
+        function initCore() {
             const connect = () => {
-                const ws = new WebSocket('wss://api-v2.blaze.com/replication/graph/double');
+                // Endpoint estabilizado para evitar bloqueio de conteúdo misto
+                const socket = new WebSocket('wss://api-v2.blaze.com/replication/graph/double');
                 
-                ws.onmessage = (msg) => {
-                    const data = JSON.parse(msg.data);
-                    // Captura tanto o status 'complete' quanto atualizações de 'waiting' para manter o Moto G ativo
-                    if (data.payload?.status === 'complete' || data.payload?.roll !== undefined) {
-                        const roll = data.payload.roll;
-                        const color = data.payload.color;
-                        
-                        if (roll !== undefined && roll !== lastRoll) {
-                            lastRoll = roll;
-                            db.unshift({c: color, v: roll});
-                            if(db.length > 8) db.pop();
-                            updateUI();
+                socket.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    const payload = data.payload;
+
+                    if (payload && (payload.status === 'complete' || payload.roll !== undefined)) {
+                        const currentRoll = payload.roll;
+                        const currentColor = payload.color;
+
+                        if (currentRoll !== undefined && lastSeed !== (currentRoll + "-" + currentColor)) {
+                            lastSeed = currentRoll + "-" + currentColor;
+                            history.unshift({v: currentRoll, c: currentColor});
+                            if(history.length > 8) history.pop();
+                            updateInterface();
                         }
                     }
                 };
-                ws.onclose = () => setTimeout(connect, 1000);
-                ws.onerror = () => ws.close();
+
+                socket.onclose = () => setTimeout(connect, 2000);
+                socket.onerror = () => socket.close();
             };
             connect();
         }
 
-        function updateUI() {
-            const h = document.getElementById('hist');
-            const colors = ['bg-white text-black', 'bg-red-600', 'bg-slate-800'];
-            h.innerHTML = db.map(p => `<div class="pedra ${colors[p.c]}">${p.v}</div>`).join('');
+        function updateInterface() {
+            const bar = document.getElementById('history-bar');
+            const colors = ['bg-slate-100 text-black', 'bg-red-600 text-white', 'bg-slate-800 text-white'];
             
-            const sec = new Date().getSeconds();
-            const status = document.getElementById('status');
-            const perc = document.getElementById('perc');
-            const rb = document.getElementById('ring-box');
+            bar.innerHTML = history.map(p => `
+                <div class="pedra ${colors[p.c]} shadow-lg shadow-black/50">${p.v}</div>
+            `).join('');
 
-            if(sec >= 58) {
-                const target = db[0].c === 1 ? "PRETO" : "VERMELHO";
-                status.innerText = "ALVO: " + target;
-                status.style.color = "#00f2ff";
-                perc.innerText = "99%";
-                rb.classList.add('active');
-                if(sec === 59) speak(target);
-            } else {
-                status.innerText = "Monitorando...";
-                status.style.color = "white";
-                perc.innerText = "0%";
-                rb.classList.remove('active');
-            }
+            processLogic();
+        }
+
+        function processLogic() {
+            const status = document.getElementById('status-text');
+            const perc = document.getElementById('percentage');
+            const ring = document.getElementById('ring-arc');
+            
+            setInterval(() => {
+                const now = new Date();
+                const sec = now.getSeconds();
+
+                if(history.length > 0 && sec >= 58) {
+                    const prediction = history[0].c === 1 ? "PRETO" : "VERMELHO";
+                    status.innerText = "ALVO: " + prediction;
+                    status.classList.add('text-yellow-400');
+                    perc.innerText = "99%";
+                    ring.classList.add('active');
+                    if(sec === 59) speak(prediction);
+                } else {
+                    status.innerText = "Rastreando Dados...";
+                    status.classList.remove('text-yellow-400');
+                    perc.innerText = "0%";
+                    ring.classList.remove('active');
+                }
+            }, 500);
         }
     </script>
 </body>
