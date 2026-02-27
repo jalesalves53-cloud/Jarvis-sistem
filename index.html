@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JARVIS MARK XVI - SUPREME SINGULARITY</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --glow: #00f2ff; --gold: #ffcc00; --bg: #010409; }
+        body { background: var(--bg); color: #e2e8f0; font-family: 'Rajdhani', sans-serif; height: 100vh; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .glass-ui { background: rgba(5, 12, 22, 0.98); border: 1px solid rgba(0, 242, 255, 0.3); backdrop-filter: blur(80px); border-radius: 50px; }
+        .quantum-ring { position: absolute; inset: 0; border: 4px solid transparent; border-top-color: var(--glow); border-radius: 50%; animation: spin 0.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+        .gold-ring { border-top-color: var(--gold) !important; filter: drop-shadow(0 0 25px var(--gold)); }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .pedra { width: 38px; height: 52px; border-radius: 12px; font-weight: 900; display: flex; align-items: center; justify-content: center; font-size: 15px; border: 1px solid rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body class="bg-black">
+
+    <div id="login" class="w-full max-w-sm glass-ui p-12 text-center z-50">
+        <h1 class="text-5xl font-black text-white font-[Orbitron] italic mb-1 tracking-tighter">SUPREME</h1>
+        <p class="text-[10px] text-cyan-400 font-bold tracking-[0.7em] mb-12 uppercase">Ultimate Singularity Core</p>
+        <div class="space-y-5">
+            <input type="password" id="pass" placeholder="CHAVE MESTRA" class="w-full bg-black/60 border border-slate-800 p-5 rounded-3xl text-cyan-400 outline-none focus:border-cyan-500 text-center text-xl">
+            <button onclick="boot()" class="w-full py-5 bg-cyan-600 text-black font-black rounded-3xl hover:bg-cyan-300 transition-all">ATIVAR SISTEMA</button>
+        </div>
+    </div>
+
+    <div id="hud" class="w-full max-w-md hidden space-y-4 px-4">
+        <div class="flex justify-between items-center px-4">
+            <div class="text-[10px] font-bold text-cyan-500 uppercase tracking-widest flex items-center gap-3">
+                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Sistema em Singularidade
+            </div>
+            <div id="clock" class="text-sm font-bold text-white opacity-50">00:00:00</div>
+        </div>
+
+        <div class="glass-ui p-10 text-center relative overflow-hidden">
+            <div class="w-40 h-40 mx-auto mb-8 flex items-center justify-center relative">
+                <div id="ring" class="quantum-ring"></div>
+                <div class="absolute inset-5 border-2 border-slate-900 rounded-full flex flex-col items-center justify-center">
+                    <span id="prob" class="text-5xl font-black text-white italic">0%</span>
+                </div>
+            </div>
+            <h2 id="msg" class="text-3xl font-black text-white uppercase italic tracking-tighter">Aguardando</h2>
+            <p id="multi-alert" class="text-[11px] font-bold text-yellow-500 hidden animate-pulse">MULTI-BRANCO DETECTADO</p>
+        </div>
+
+        <div class="glass-ui p-6">
+            <div id="hist" class="flex gap-2 justify-center"></div>
+        </div>
+    </div>
+
+    <script>
+        let db = [], whiteCluster = 0, lastId = null;
+        const s = window.speechSynthesis;
+
+        function talk(t) { 
+            s.cancel(); 
+            const u = new SpeechSynthesisUtterance(t); 
+            u.lang='pt-BR'; u.rate=1.6; s.speak(u); 
+        }
+
+        function boot() {
+            if(document.getElementById('pass').value==="MARK85") {
+                document.getElementById('login').classList.add('hidden');
+                document.getElementById('hud').classList.remove('hidden');
+                talk("Sincronia completa. O sistema é seu, Senhor.");
+                init();
+            }
+        }
+
+        function init() {
+            const ws = new WebSocket('wss://api-v2.blaze.com/replication/graph/double');
+            setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('pt-BR'); }, 1000);
+
+            ws.onmessage = (e) => {
+                const p = JSON.parse(e.data);
+                if (p.payload?.status === 'complete') {
+                    if(p.payload.id === lastId) return;
+                    lastId = p.payload.id;
+                    db.unshift({ cor: p.payload.color, val: p.payload.roll });
+                    if(p.payload.color === 0) whiteCluster = -2; else whiteCluster++;
+                    if(db.length > 15) db.pop();
+                    render();
+                }
+            };
+        }
+
+        function render() {
+            const h = document.getElementById('hist');
+            const c = ['bg-white text-black shadow-[0_0_20px_white]', 'bg-red-600 text-white', 'bg-slate-950 text-white'];
+            h.innerHTML = db.slice(0, 7).map(i => `<div class="pedra ${c[i.cor]}">${i.val}</div>`).join('');
+            analyze();
+        }
+
+        function analyze() {
+            const m = document.getElementById('msg');
+            const p = document.getElementById('prob');
+            const r = document.getElementById('ring');
+            const ma = document.getElementById('multi-alert');
+            const sec = new Date().getSeconds();
+
+            if(whiteCluster < 0) { ma.classList.remove('hidden'); r.classList.add('gold-ring'); } 
+            else { ma.classList.add('hidden'); r.classList.remove('gold-ring'); }
+
+            if(sec >= 58) {
+                p.innerText = "99%";
+                const alvo = db[0].cor === 1 ? "PRETO" : "VERMELHO";
+                m.innerText = "ALVO: " + alvo;
+                m.style.color = "#ff0055";
+                if(sec === 59) talk(`${alvo}. ${whiteCluster < 0 ? 'Branco múltiplo iminente' : ''}`);
+            } else {
+                m.innerText = "RASTREAMENTO";
+                m.style.color = "#fff";
+                p.innerText = "0%";
+            }
+        }
+    </script>
+</body>
+  </html>
+
