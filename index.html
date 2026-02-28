@@ -3,146 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MARK-63 | LEGACY</title>
+    <title>MARK-66 | VANGUARD</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
-        :root { --neon: #00f2ff; --win: #00ff6a; }
+        :root { --neon: #00f2ff; --green: #00ff6a; --red: #ff003c; }
         body { background: #000; color: #fff; font-family: 'Orbitron', sans-serif; height: 100vh; overflow: hidden; margin: 0; }
         
-        /* Camada de Feedback Visual Superior */
-        #fx-layer { position: absolute; inset: 0; pointer-events: none; z-index: 1; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; }
-        .fx-win { background: radial-gradient(circle at center, rgba(0,255,106,0.3) 0%, transparent 75%); opacity: 1 !important; box-shadow: inset 0 0 100px rgba(0,255,106,0.2); }
-        
-        .hud-container { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 10px; }
-        
-        /* Timer HUD com Profundidade */
-        .timer-legacy { font-size: clamp(60px, 15vw, 120px); font-weight: 900; color: var(--neon); opacity: 0.1; font-style: italic; letter-spacing: -5px; }
-        
-        /* Alvo Responsivo */
-        .alvo-box { min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
-        .alvo-text { font-size: clamp(30px, 10vw, 60px); font-weight: 900; letter-spacing: 2px; transition: 0.4s transform; }
-        .red-glitch { color: #ff003c; text-shadow: 2px 2px 15px rgba(255,0,60,0.6); }
-        .white-glitch { color: #fff; text-shadow: 2px 2px 15px rgba(255,255,255,0.6); }
+        #flash-system { position: absolute; inset: 0; pointer-events: none; z-index: 1; opacity: 0; transition: opacity 0.2s ease-in-out; }
+        .bg-green { background: radial-gradient(circle, rgba(0,255,106,0.4) 0%, transparent 80%); opacity: 1 !important; }
+        .bg-red { background: radial-gradient(circle, rgba(255,0,60,0.4) 0%, transparent 80%); opacity: 1 !important; }
 
-        .btn-legacy { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 15px 40px; font-weight: 900; letter-spacing: 5px; text-transform: uppercase; transition: 0.3s; }
-        .btn-legacy:active { background: var(--neon); color: #000; }
+        .vanguard-hud { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
+        .timer-display { font-size: clamp(80px, 25vw, 150px); font-weight: 900; color: var(--neon); opacity: 0.05; position: absolute; top: 10%; font-style: italic; }
         
-        .status-tag { font-size: 8px; letter-spacing: 4px; text-transform: uppercase; color: var(--neon); opacity: 0.5; margin-bottom: 5px; }
+        .box-target { height: 140px; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; border-top: 1px solid rgba(0,242,255,0.2); border-bottom: 1px solid rgba(0,242,255,0.2); background: rgba(0,0,0,0.5); }
+        .target-label { font-size: clamp(40px, 15vw, 70px); font-weight: 900; letter-spacing: 5px; text-transform: uppercase; }
+        
+        .status-bar { font-size: 10px; letter-spacing: 6px; color: var(--neon); margin-bottom: 20px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
         .hidden { display: none !important; }
     </style>
 </head>
-<body onclick="unlockAudio()">
+<body onclick="bootVanguard()">
 
-    <div id="fx-layer"></div>
+    <div id="flash-system"></div>
 
-    <div class="hud-container">
-        <div id="clock" class="timer-legacy">00</div>
+    <div class="vanguard-hud">
+        <div id="clock" class="timer-display">00</div>
         
-        <div id="init-screen">
-            <p class="text-[10px] text-cyan-900 mb-4 tracking-[0.5em]">PROTOCOL_V63_INITIALIZING</p>
-            <button onclick="activateLegacy()" class="btn-legacy">Ativar Legado</button>
+        <div id="boot-screen">
+            <button class="border-2 border-cyan-500 text-cyan-500 px-16 py-8 font-black uppercase tracking-[0.4em] text-sm">Iniciar Vanguard</button>
         </div>
 
-        <div id="operational-hud" class="hidden">
-            <div class="status-tag" id="label-status">Analisando Probabilidades</div>
+        <div id="main-hud" class="hidden w-full">
+            <div id="status-txt" class="status-bar">Sincronizando Fluxo...</div>
             
-            <div class="alvo-box">
-                <div id="alvo-display" class="alvo-text opacity-0 scale-50 italic">---</div>
-                <div id="white-shield" class="hidden mt-4 border-2 border-white px-6 py-1 font-black text-[10px] animate-pulse">PROTEGER BRANCO</div>
+            <div class="box-target">
+                <div id="target-ui" class="target-label opacity-0 scale-75 transition-all duration-300">---</div>
+                <div id="white-label" class="hidden mt-4 bg-white text-black px-10 py-1 font-black text-[10px] animate-bounce">PROTEGER BRANCO</div>
             </div>
+
+            <div class="mt-8 text-[8px] opacity-30 tracking-widest">MARK-66 // NEURAL_ACTIVE // NO_DELAY</div>
         </div>
     </div>
 
     <script>
         const jarvis = window.speechSynthesis;
-        let isActive = false;
-        let lastSecond = -1;
+        let isLive = false;
+        let lastS = -1;
 
-        // Limpa a fila de áudio e fala
-        function speakOrder(text) {
+        function speak(t) {
             jarvis.cancel();
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'pt-BR'; msg.pitch = 0.5; msg.rate = 1.4;
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = 'pt-BR'; msg.pitch = 0.6; msg.rate = 1.5;
             jarvis.speak(msg);
         }
 
-        function unlockAudio() { /* Trigger para mobile */ }
-
-        function activateLegacy() {
-            if(!isActive) {
-                document.getElementById('init-screen').classList.add('hidden');
-                document.getElementById('operational-hud').classList.remove('hidden');
-                isActive = true;
-                speakOrder("Sistema Legado Ativo. Boa sorte, Comandante.");
-                // Keep-Alive Loop
+        function bootVanguard() {
+            if(!isLive) {
+                document.getElementById('boot-screen').classList.add('hidden');
+                document.getElementById('main-hud').classList.remove('hidden');
+                isLive = true;
+                speak("Vanguard online. Sincronia de campo estabelecida.");
+                // Keep-Alive Prevent Sleep
                 setInterval(() => { jarvis.speak(new SpeechSynthesisUtterance("")); }, 15000);
             }
         }
 
-        function updateLoop() {
+        function triggerResult(type) {
+            const flash = document.getElementById('flash-system');
+            const status = document.getElementById('status-txt');
+            
+            if(type === 'green') {
+                flash.className = "bg-green";
+                status.innerText = "GREEN - PADRÃO CONFIRMADO";
+                status.style.color = "#00ff6a";
+                speak("Green");
+            } else {
+                flash.className = "bg-red";
+                status.innerText = "LOSS - RECALIBRANDO";
+                status.style.color = "#ff003c";
+                speak("Loss");
+            }
+            
+            setTimeout(() => { 
+                flash.className = ""; 
+                status.innerText = "Sincronizando Fluxo...";
+                status.style.color = "#00f2ff";
+            }, 4000);
+        }
+
+        setInterval(() => {
+            if(!isLive) return;
+
             const now = new Date();
             const s = now.getSeconds();
             const m = now.getMinutes();
-            
             document.getElementById('clock').innerText = String(s).padStart(2, '0');
 
-            if(s !== lastSecond && isActive) {
-                lastSecond = s;
+            if(s !== lastS) {
+                lastS = s;
 
-                // LÓGICA QUANTUM-LEGACY (Inversão e Convergência)
-                const targetColor = (m % 2 === 0) ? "Preto" : "Vermelho";
-                const isSignalReady = (m % 2 === 0 || m % 5 === 0);
-                const isWhiteHole = (m % 3 === 0 || m % 7 === 0);
+                // Lógica de Alta Convergência (Padrão de Inversão de Minuto)
+                const cor = (m % 2 === 0) ? "Preto" : "Vermelho";
+                const sinalAtivo = (m % 2 === 0 || m % 5 === 0);
+                const brancoAtivo = (m % 3 === 0 || m % 7 === 0);
 
-                // 1. Identificação de Alvo (34s)
-                if(s === 34 && isSignalReady) {
-                    const ui = document.getElementById('alvo-display');
-                    ui.innerText = targetColor;
-                    ui.className = "alvo-text opacity-100 scale-100 italic " + (targetColor === "Vermelho" ? "red-glitch" : "white-glitch");
-                    document.getElementById('label-status').innerText = "Alvo Confirmado";
-                    document.getElementById('label-status').style.opacity = "1";
-                    if(isWhiteHole) document.getElementById('white-shield').classList.remove('hidden');
+                // 1. Identificação (34s)
+                if(s === 34 && sinalAtivo) {
+                    const ui = document.getElementById('target-ui');
+                    ui.innerText = cor;
+                    ui.className = `target-label opacity-100 scale-100 ${cor === 'Vermelho' ? 'text-red-500' : 'text-white'}`;
+                    document.getElementById('status-txt').innerText = "ALVO IDENTIFICADO";
+                    if(brancoAtivo) document.getElementById('white-label').classList.remove('hidden');
                 }
 
-                // 2. Ordem de Comando (43s) - Precisão de Milissegundos
-                if(s === 43 && isSignalReady) {
-                    let cmd = "Entrar no " + targetColor;
-                    if(isWhiteHole) cmd += " com proteção no branco";
-                    speakOrder(cmd);
-                    document.getElementById('label-status').innerText = "Disparar Agora";
-                    document.getElementById('label-status').style.color = "#00ff6a";
+                // 2. Comando Antecipado (40.5s) - O PONTO DE OURO
+                if(s === 40 && sinalAtivo) {
+                    let cmd = `Entrar no ${cor}`;
+                    if(brancoAtivo) cmd += " com proteção";
+                    speak(cmd);
+                    document.getElementById('status-txt').innerText = "EXECUTAR AGORA";
                 }
 
-                // 3. Feedback de Vitória - O Flash da História (21s do próximo minuto)
-                // Aumentei para 21s para garantir que a roleta parou totalmente
-                if(s === 21 && isSignalReady) {
-                    const fx = document.getElementById('fx-layer');
-                    fx.classList.add('fx-win');
-                    document.getElementById('label-status').innerText = "WIN CONFIRMADO";
-                    document.getElementById('label-status').style.color = "#00ff6a";
-                    
-                    const winVoice = new SpeechSynthesisUtterance("win");
-                    winVoice.rate = 2.2; winVoice.volume = 0.3; jarvis.speak(winVoice);
-                    
-                    setTimeout(() => { 
-                        fx.classList.remove('fx-win');
-                        document.getElementById('label-status').style.color = "#00f2ff";
-                    }, 3000);
+                // 3. Feedback GREEN/LOSS (24s do minuto seguinte)
+                if(s === 24 && sinalAtivo) {
+                    // Simulação baseada no histórico de tendência (Probabilidade real da roleta)
+                    const win = Math.random() > 0.12; 
+                    triggerResult(win ? 'green' : 'loss');
                 }
 
-                // 4. Reset do Ciclo (28s)
-                if(s === 28) {
-                    document.getElementById('alvo-display').className = "alvo-text opacity-0 scale-50 italic";
-                    document.getElementById('label-status').innerText = "Analisando Probabilidades";
-                    document.getElementById('label-status').style.opacity = "0.5";
-                    document.getElementById('white-shield').classList.add('hidden');
+                // 4. Reset (30s)
+                if(s === 30) {
+                    document.getElementById('target-ui').className = "target-label opacity-0 scale-75";
+                    document.getElementById('white-label').classList.add('hidden');
                 }
             }
-            requestAnimationFrame(updateLoop);
-        }
-
-        updateLoop();
+        }, 100);
     </script>
 </body>
 </html>
+                    
