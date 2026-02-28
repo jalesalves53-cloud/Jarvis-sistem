@@ -3,118 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MARK-37 | ORACLE FINAL</title>
+    <title>MARK-39 | IRON SIGHT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
         body { background: #000; color: #fff; font-family: 'Orbitron', sans-serif; height: 100vh; overflow: hidden; margin: 0; }
-        #quantum-flash { position: absolute; inset: 0; opacity: 0; transition: opacity 0.1s; z-index: 1; pointer-events: none; will-change: opacity; }
+        /* Remoção de transições para Ganho de Velocidade */
+        #quantum-flash { position: absolute; inset: 0; opacity: 0; z-index: 1; pointer-events: none; }
         .hud-overlay { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; }
-        .red-zone { background: radial-gradient(circle, #ff0000 0%, transparent 85%); border: 6px solid #ff0000; opacity: 0.8 !important; }
-        .black-zone { background: radial-gradient(circle, #333 0%, transparent 85%); border: 6px solid #444; opacity: 0.9 !important; }
-        .trigger-tag { background: #00f2ff; color: #000; padding: 4px 15px; font-weight: 900; font-size: 14px; border-radius: 4px; margin-top: 10px; text-transform: uppercase; letter-spacing: 2px; }
-        .white-flash { border: 10px solid #fff !important; box-shadow: inset 0 0 50px #fff; }
+        .red-zone { background: #ff0000; opacity: 0.5 !important; border: 10px solid #ff0000; }
+        .black-zone { background: #111; opacity: 0.8 !important; border: 10px solid #fff; }
+        .white-alert { border: 15px solid #fff !important; box-shadow: 0 0 50px #fff; }
+        .trigger-tag { background: #00f2ff; color: #000; padding: 4px 20px; font-weight: 900; font-size: 18px; border-radius: 4px; margin-top: 10px; }
         .hidden { display: none !important; }
     </style>
 </head>
-<body onclick="void(0)">
+<body onclick="unlock()">
 
     <div id="quantum-flash"></div>
 
     <div id="access-screen" class="hud-overlay bg-black">
-        <h2 class="text-[#00f2ff] text-xl font-black mb-6 tracking-widest">MARK-37 ORACLE</h2>
-        <input type="password" id="key" class="bg-black border-2 border-[#00f2ff] p-3 text-center text-white w-64 outline-none rounded-lg" placeholder="CHAVE JARVIS">
-        <button onclick="boot()" class="mt-6 bg-[#00f2ff] text-black font-black px-12 py-3 rounded-lg hover:bg-white transition-all">CONECTAR</button>
+        <h2 class="text-[#00f2ff] text-2xl font-black mb-6 tracking-tighter italic">MARK-39 IRON SIGHT</h2>
+        <input type="password" id="key" class="bg-black border-2 border-[#00f2ff] p-3 text-center text-white w-64 outline-none mb-4" placeholder="CHAVE JARVIS">
+        <button onclick="boot()" class="bg-[#00f2ff] text-black font-black px-12 py-3 uppercase text-sm">ATIVAR MIRA</button>
     </div>
 
     <div id="main-hud" class="hud-overlay hidden">
-        <div class="text-[8px] tracking-[0.4em] text-cyan-500 mb-1">SISTEMA DE LEITURA DE PEDRAS ATIVO</div>
         <div id="timer" class="text-9xl font-black italic tracking-tighter">00</div>
-        
-        <div id="prediction" class="text-6xl font-black mt-2 uppercase"></div>
-        <div id="trigger-display" class="trigger-tag hidden">PÓS 0</div>
-        
-        <div id="white-tag" class="hidden text-black font-black mt-4 text-xs bg-white px-6 py-1 rounded-full">BRANCO PROTEÇÃO</div>
+        <div id="prediction" class="text-6xl font-black mt-2">---</div>
+        <div id="trigger-display" class="trigger-tag hidden">AGUARDANDO</div>
+        <div id="white-notif" class="hidden mt-4 bg-white text-black px-4 py-1 font-black animate-pulse">PROTEÇÃO BRANCO</div>
     </div>
 
     <script>
         const voice = window.speechSynthesis;
-        let active = false;
+        let isLive = false;
         let lastS = -1;
 
-        function speak(t) {
-            voice.cancel();
-            const u = new SpeechSynthesisUtterance(t);
-            u.lang = 'pt-BR'; u.pitch = 0.55; u.rate = 1.35;
-            voice.speak(u);
+        function speak(text) {
+            if (!isLive) return;
+            voice.cancel(); // Mata qualquer fala anterior imediatamente
+            const m = new SpeechSynthesisUtterance(text);
+            m.lang = 'pt-BR'; m.pitch = 0.5; m.rate = 1.45;
+            voice.speak(m);
         }
+
+        function unlock() { /* Habilita áudio */ }
 
         function boot() {
             if(document.getElementById('key').value.toLowerCase() === "jarvis") {
                 document.getElementById('access-screen').classList.add('hidden');
                 document.getElementById('main-hud').classList.remove('hidden');
-                active = true;
-                speak("Oráculo ativo. Iniciando detecção de gatilhos por pedra.");
+                isLive = true;
+                speak("Mira travada. Mark 39 operacional.");
             }
         }
 
-        // Algoritmo de Mapeamento de Gatilho (Baseado na variância do minuto)
-        function getTriggerStone(m) {
-            const stones = [1, 5, 8, 12, 3, 9, 14, 2, 7, 11, 4, 10, 6, 13];
-            return stones[m % 14];
+        // Algoritmo de Pedra Dinâmico (Evita repetição estática)
+        function getDynamicStone(s, m) {
+            const sequence = [1, 7, 12, 3, 9, 14, 5, 11, 2, 8, 13, 4, 10, 6];
+            return sequence[(s + m) % 14];
         }
 
         setInterval(() => {
-            if(!active) return;
+            if(!isLive) return;
             const now = new Date();
             const s = now.getSeconds();
             const m = now.getMinutes();
-
+            
             document.getElementById('timer').innerText = String(s).padStart(2, '0');
 
             if(s !== lastS) {
                 lastS = s;
 
-                // Lógica Sniper MARK-37
-                const isSniper = (m % 2 === 0 || m % 3 === 0);
-                const isWhite = (m % 3 === 0 || m % 5 === 0);
+                const isEntry = (m % 2 === 0 || m % 3 === 0);
+                const isWhite = (m % 4 === 0 || m % 5 === 0);
                 const color = (m % 2 === 0) ? "VERMELHO" : "PRETO";
-                const stone = getTriggerStone(m);
+                const stone = getDynamicStone(s, m);
 
-                // 1. ANTECIPAÇÃO VISUAL (35s)
-                if(s === 35 && isSniper) {
+                // 1. SINAL VISUAL (34s) - Instantâneo
+                if(s === 34 && isEntry) {
                     const flash = document.getElementById('quantum-flash');
                     flash.className = (color === "VERMELHO") ? "red-zone" : "black-zone";
-                    if(isWhite) flash.classList.add('white-flash');
+                    if(isWhite) flash.classList.add('white-alert');
                     flash.style.opacity = "1";
 
-                    document.getElementById('prediction').innerText = color;
-                    document.getElementById('prediction').style.color = (color === "VERMELHO") ? "#ff3333" : "#fff";
+                    const pred = document.getElementById('prediction');
+                    pred.innerText = color;
+                    pred.style.color = (color === "VERMELHO") ? "#ff0000" : "#fff";
                     
-                    const triggerEl = document.getElementById('trigger-display');
-                    triggerEl.innerText = `PÓS ${stone}`;
-                    triggerEl.classList.remove('hidden');
+                    const trig = document.getElementById('trigger-display');
+                    trig.innerText = `PÓS ${stone}`;
+                    trig.classList.remove('hidden');
                     
-                    if(isWhite) document.getElementById('white-tag').classList.remove('hidden');
+                    if(isWhite) document.getElementById('white-notif').classList.remove('hidden');
                 }
 
-                // 2. COMANDO DE VOZ TÁTICO (47s)
-                if(s === 47 && isSniper) {
-                    const wMsg = isWhite ? "e branco" : "";
-                    speak(`Pós ${stone}, entrada ${color} ${wMsg}.`);
+                // 2. VOZ DE ATAQUE (45s) - Ganha 2 segundos de margem extra
+                if(s === 45 && isEntry) {
+                    const whiteMsg = isWhite ? "com branco" : "";
+                    speak(`Pós ${stone}, ${color} ${whiteMsg}`);
                 }
 
-                // 3. ECO DE BRANCO (02s)
-                if(s === 2 && isWhite) speak("Mantenha o branco.");
+                // 3. CONFIRMAÇÃO DO BRANCO (57s) - Antecipação total
+                if(s === 57 && isWhite) {
+                    speak("Foco no branco.");
+                }
 
-                // 4. RESET HUD (05s)
-                if(s === 5) {
-                    const flash = document.getElementById('quantum-flash');
-                    flash.style.opacity = "0";
-                    flash.className = "";
-                    document.getElementById('prediction').innerText = "";
+                // 4. LIMPEZA DE BUFFER (04s)
+                if(s === 4) {
+                    document.getElementById('quantum-flash').style.opacity = "0";
+                    document.getElementById('quantum-flash').className = "";
+                    document.getElementById('prediction').innerText = "---";
                     document.getElementById('trigger-display').classList.add('hidden');
-                    document.getElementById('white-tag').classList.add('hidden');
+                    document.getElementById('white-notif').classList.add('hidden');
                 }
             }
         }, 100);
