@@ -3,122 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MARK-44 | COMMANDER FINAL</title>
+    <title>MARK-49 | IRON SIGHT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
         body { background: #000; color: #fff; font-family: 'Orbitron', sans-serif; height: 100vh; overflow: hidden; margin: 0; }
-        /* Flash visual de alta performance (sem transições lentas) */
-        #quantum-flash { position: absolute; inset: 0; opacity: 0; z-index: 1; pointer-events: none; }
-        .hud-overlay { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; }
-        .red-zone { background: #ff0000; opacity: 0.6 !important; border: 15px solid #ff0000; }
-        .black-zone { background: #111; opacity: 0.9 !important; border: 15px solid #fff; }
-        .checkpoint-tag { background: #fbbf24; color: #000; padding: 6px 30px; font-weight: 900; font-size: 24px; border-radius: 8px; margin-top: 20px; text-transform: lowercase; }
+        #flash-overlay { position: absolute; inset: 0; opacity: 0; z-index: 1; pointer-events: none; }
+        .ui-container { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; }
+        .bg-vermelho { background: #ff0000; opacity: 0.6 !important; border: 12px solid #ff0000; }
+        .bg-preto { background: #111; opacity: 0.9 !important; border: 12px solid #fff; }
+        .confirm-tag { background: #00f2ff; color: #000; padding: 6px 35px; font-weight: 900; font-size: 22px; border-radius: 4px; margin-top: 20px; text-transform: lowercase; box-shadow: 0 0 20px #00f2ff; }
         .hidden { display: none !important; }
     </style>
 </head>
-<body onclick="unlockVoice()">
+<body onclick="void(0)">
 
-    <div id="quantum-flash"></div>
+    <div id="flash-overlay"></div>
 
-    <div id="access-screen" class="hud-overlay bg-black">
-        <h2 class="text-[#00f2ff] text-2xl font-black mb-8 tracking-widest uppercase">Mark-44 Protocol</h2>
-        <input type="password" id="key" class="bg-black border-2 border-[#00f2ff] p-4 text-center text-white w-72 outline-none rounded-xl" placeholder="CHAVE JARVIS">
-        <button onclick="boot()" class="mt-6 bg-[#00f2ff] text-black font-black px-16 py-4 rounded-xl uppercase">Sincronizar</button>
+    <div id="boot-screen" class="ui-container bg-black">
+        <h2 class="text-cyan-400 text-3xl font-black mb-10 tracking-widest italic">MARK-49</h2>
+        <button onclick="startSystem()" class="bg-cyan-500 text-black px-16 py-5 font-black rounded-sm uppercase hover:bg-white transition-all">Iniciar Protocolo</button>
     </div>
 
-    <div id="main-hud" class="hud-overlay hidden">
-        <div id="timer" class="text-9xl font-black italic tracking-tighter">00</div>
-        <div id="prediction" class="text-6xl font-black mt-2">---</div>
-        <div id="checkpoint" class="checkpoint-tag hidden"></div>
-        <div id="white-tag" class="hidden text-black font-black mt-6 text-sm bg-white px-8 py-2 rounded-full animate-pulse">BRANCO ATIVO</div>
+    <div id="hud-display" class="ui-container hidden">
+        <div id="clock" class="text-9xl font-black italic tracking-tighter opacity-90">00</div>
+        <div id="target-color" class="text-6xl font-black mt-2">---</div>
+        <div id="stone-ref" class="confirm-tag hidden"></div>
+        <div id="white-warn" class="hidden mt-8 bg-white text-black px-10 py-2 font-black rounded-full text-xs">PROTEÇÃO BRANCO</div>
     </div>
 
     <script>
-        const voice = window.speechSynthesis;
-        let active = false;
-        let lastS = -1;
+        const synth = window.speechSynthesis;
+        let isSystemReady = false;
+        let lastSecond = -1;
 
-        // Função de fala corrigida para evitar soletração
-        function speak(t) {
-            voice.cancel();
-            const m = new SpeechSynthesisUtterance(t.toLowerCase());
-            m.lang = 'pt-BR';
-            m.pitch = 0.55;
-            m.rate = 1.35; 
-            voice.speak(m);
+        // Limpeza de buffer de voz para evitar soletração no Android
+        function speak(phrase) {
+            synth.cancel();
+            const utterance = new SpeechSynthesisUtterance(phrase.toLowerCase());
+            utterance.lang = 'pt-BR';
+            utterance.pitch = 0.6;
+            utterance.rate = 1.35;
+            synth.speak(utterance);
         }
 
-        function unlockVoice() { /* Necessário para navegadores mobile */ }
-
-        function boot() {
-            if(document.getElementById('key').value.toLowerCase() === "jarvis") {
-                document.getElementById('access-screen').classList.add('hidden');
-                document.getElementById('main-hud').classList.remove('hidden');
-                active = true;
-                speak("sistema sincronizado. pronto para o combate.");
-            }
+        function startSystem() {
+            document.getElementById('boot-screen').classList.add('hidden');
+            document.getElementById('hud-display').classList.remove('hidden');
+            isSystemReady = true;
+            speak("mark 49 online. sistema de mira travado.");
         }
 
-        // Lógica de Pedra de Confirmação (Sincronizada com o minuto real)
-        function getStone(m) {
-            const sequence = [12, 7, 8, 14, 9, 11, 2, 5, 13, 4];
-            return sequence[m % 10];
+        // Lógica de Pedra de Confirmação (Baseada em ciclos de 10 rodadas)
+        function getStoneReference(minute) {
+            const stones = [7, 12, 8, 14, 9, 2, 11, 5, 1, 10];
+            return stones[minute % 10];
         }
 
         setInterval(() => {
-            if(!active) return;
+            if(!isSystemReady) return;
 
             const now = new Date();
             const s = now.getSeconds();
             const m = now.getMinutes();
             
-            document.getElementById('timer').innerText = String(s).padStart(2, '0');
+            document.getElementById('clock').innerText = String(s).padStart(2, '0');
 
-            if(s !== lastS) {
-                lastS = s;
+            if(s !== lastSecond) {
+                lastSecond = s;
 
-                // 1. GERAÇÃO DE ESTADO ÚNICO (Prevenção de divergência)
-                const stone = getStone(m);
-                const color = (m % 2 === 0) ? "vermelho" : "preto";
-                const isEntry = (m % 2 === 0 || m % 3 === 0);
-                const isWhite = (m % 3 === 0 || m % 5 === 0);
+                // CÁLCULO DE SINAL INDEPENDENTE
+                const colorTarget = (m % 2 === 0) ? "vermelho" : "preto";
+                const activeEntry = (m % 2 === 0 || m % 3 === 0);
+                const whiteEntry = (m % 3 === 0);
+                const ref = getStoneReference(m);
 
-                // 2. GATILHO VISUAL (34s) - Antecipado para preparação
-                if(s === 34 && isEntry) {
-                    const flash = document.getElementById('quantum-flash');
-                    flash.className = (color === "vermelho") ? "red-zone" : "black-zone";
+                // EXIBIÇÃO VISUAL (35s)
+                if(s === 35 && activeEntry) {
+                    const flash = document.getElementById('flash-overlay');
+                    flash.className = (colorTarget === "vermelho") ? "bg-vermelho" : "bg-preto";
                     flash.style.opacity = "1";
 
-                    const pred = document.getElementById('prediction');
-                    pred.innerText = color.toUpperCase();
-                    pred.style.color = (color === "vermelho") ? "#ff0000" : "#fff";
+                    const colorLabel = document.getElementById('target-color');
+                    colorLabel.innerText = colorTarget;
+                    colorLabel.style.color = (colorTarget === "vermelho") ? "#ff0000" : "#fff";
                     
-                    const check = document.getElementById('checkpoint');
-                    check.innerText = `pos ${stone}`;
-                    check.classList.remove('hidden');
+                    const refLabel = document.getElementById('stone-ref');
+                    refLabel.innerText = "pós " + ref;
+                    refLabel.classList.remove('hidden');
                     
-                    if(isWhite) document.getElementById('white-tag').classList.remove('hidden');
+                    if(whiteEntry) document.getElementById('white-warn').classList.remove('hidden');
                 }
 
-                // 3. COMANDO DE VOZ (45s) - Sem soletração
-                if(s === 45 && isEntry) {
-                    let msg = `pós ${stone}, entrada no ${color}`;
-                    if(isWhite) msg += " com proteção no branco";
-                    speak(msg);
+                // COMANDO DE VOZ TÁTICO (46s)
+                if(s === 46 && activeEntry) {
+                    let text = "após o " + ref + ", entrar no " + colorTarget;
+                    if(whiteEntry) text += " com proteção no branco";
+                    speak(text);
                 }
 
-                // 4. ECO DE BRANCO (58s)
-                if(s === 58 && isWhite) {
-                    speak("proteja o branco");
-                }
-
-                // 5. RESET (05s) - Limpa tudo para a próxima rodada
+                // RESET DE INTERFACE (05s)
                 if(s === 5) {
-                    document.getElementById('quantum-flash').style.opacity = "0";
-                    document.getElementById('prediction').innerText = "---";
-                    document.getElementById('checkpoint').classList.add('hidden');
-                    document.getElementById('white-tag').classList.add('hidden');
+                    document.getElementById('flash-overlay').style.opacity = "0";
+                    document.getElementById('target-color').innerText = "---";
+                    document.getElementById('stone-ref').classList.add('hidden');
+                    document.getElementById('white-warn').classList.add('hidden');
                 }
             }
         }, 100);
