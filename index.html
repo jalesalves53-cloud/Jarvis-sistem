@@ -3,111 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MARK-49 | IRON SIGHT</title>
+    <title>MARK-52 | FORTRESS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
-        body { background: #000; color: #fff; font-family: 'Orbitron', sans-serif; height: 100vh; overflow: hidden; margin: 0; }
-        #flash-overlay { position: absolute; inset: 0; opacity: 0; z-index: 1; pointer-events: none; }
-        .ui-container { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; }
-        .bg-vermelho { background: #ff0000; opacity: 0.6 !important; border: 12px solid #ff0000; }
-        .bg-preto { background: #111; opacity: 0.9 !important; border: 12px solid #fff; }
-        .confirm-tag { background: #00f2ff; color: #000; padding: 6px 35px; font-weight: 900; font-size: 22px; border-radius: 4px; margin-top: 20px; text-transform: lowercase; box-shadow: 0 0 20px #00f2ff; }
+        body { background: #000; color: #00f2ff; font-family: 'Orbitron', sans-serif; height: 100vh; overflow: hidden; margin: 0; }
+        #shield-layer { position: absolute; inset: 0; background: radial-gradient(circle, rgba(0,242,255,0.05) 0%, transparent 80%); pointer-events: none; }
+        .hud-v4 { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; }
+        .signal-box { border-left: 3px solid #00f2ff; padding: 15px 30px; background: rgba(0, 242, 255, 0.02); min-width: 280px; }
+        .alert-red { background: rgba(255, 0, 0, 0.4) !important; border: 2px solid #f00; box-shadow: 0 0 20px #f00; }
+        .alert-black { background: rgba(255, 255, 255, 0.15) !important; border: 2px solid #fff; box-shadow: 0 0 20px #fff; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body onclick="void(0)">
 
-    <div id="flash-overlay"></div>
+    <div id="shield-layer"></div>
 
-    <div id="boot-screen" class="ui-container bg-black">
-        <h2 class="text-cyan-400 text-3xl font-black mb-10 tracking-widest italic">MARK-49</h2>
-        <button onclick="startSystem()" class="bg-cyan-500 text-black px-16 py-5 font-black rounded-sm uppercase hover:bg-white transition-all">Iniciar Protocolo</button>
+    <div id="login-screen" class="hud-v4 bg-black">
+        <div class="mb-8 animate-pulse text-cyan-400 font-bold tracking-[0.5em]">MARK-52 FORTRESS</div>
+        <button onclick="startFortress()" class="bg-[#00f2ff] text-black px-16 py-5 font-black rounded-sm uppercase tracking-widest hover:bg-white transition-all">Ativar Protocolo</button>
     </div>
 
-    <div id="hud-display" class="ui-container hidden">
-        <div id="clock" class="text-9xl font-black italic tracking-tighter opacity-90">00</div>
-        <div id="target-color" class="text-6xl font-black mt-2">---</div>
-        <div id="stone-ref" class="confirm-tag hidden"></div>
-        <div id="white-warn" class="hidden mt-8 bg-white text-black px-10 py-2 font-black rounded-full text-xs">PROTEÇÃO BRANCO</div>
+    <div id="hud-content" class="hud-v4 hidden">
+        <div id="clock" class="text-8xl font-black italic opacity-30 mb-6">00</div>
+        
+        <div id="status-line" class="text-[10px] uppercase tracking-widest text-cyan-700 mb-4">Aguardando Infiltração...</div>
+        
+        <div class="signal-box" id="box-ui">
+            <div id="target-ui" class="text-7xl font-black text-white italic tracking-tighter">---</div>
+            <div id="ref-ui" class="text-2xl font-black text-cyan-400 mt-2 uppercase"></div>
+        </div>
+
+        <div id="white-shield" class="hidden mt-10 border-2 border-white px-10 py-2 font-black text-white text-sm animate-bounce">PROTEGER BRANCO</div>
     </div>
 
     <script>
-        const synth = window.speechSynthesis;
-        let isSystemReady = false;
-        let lastSecond = -1;
+        const v = window.speechSynthesis;
+        let online = false;
+        let ls = -1;
 
-        // Limpeza de buffer de voz para evitar soletração no Android
-        function speak(phrase) {
-            synth.cancel();
-            const utterance = new SpeechSynthesisUtterance(phrase.toLowerCase());
-            utterance.lang = 'pt-BR';
-            utterance.pitch = 0.6;
-            utterance.rate = 1.35;
-            synth.speak(utterance);
+        function talk(msg) {
+            v.cancel();
+            const u = new SpeechSynthesisUtterance(msg.toLowerCase());
+            u.lang = 'pt-BR'; 
+            u.pitch = 0.6; 
+            u.rate = 1.4;
+            v.speak(u);
         }
 
-        function startSystem() {
-            document.getElementById('boot-screen').classList.add('hidden');
-            document.getElementById('hud-display').classList.remove('hidden');
-            isSystemReady = true;
-            speak("mark 49 online. sistema de mira travado.");
+        function startFortress() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('hud-content').classList.remove('hidden');
+            online = true;
+            talk("sistema blindado. pronto para o combate.");
         }
 
-        // Lógica de Pedra de Confirmação (Baseada em ciclos de 10 rodadas)
-        function getStoneReference(minute) {
-            const stones = [7, 12, 8, 14, 9, 2, 11, 5, 1, 10];
-            return stones[minute % 10];
+        // Motor de Pedra de Referência (Ciclo de 30 segundos)
+        function getSecureStone(m, s) {
+            const d = [12, 7, 8, 14, 9, 11, 2, 5, 3, 10, 1, 13, 4, 6];
+            const i = Math.floor(((m * 60) + s) / 30) % d.length;
+            return d[i];
         }
 
         setInterval(() => {
-            if(!isSystemReady) return;
+            if(!online) return;
 
-            const now = new Date();
-            const s = now.getSeconds();
-            const m = now.getMinutes();
-            
+            const n = new Date();
+            const s = n.getSeconds();
+            const m = n.getMinutes();
             document.getElementById('clock').innerText = String(s).padStart(2, '0');
 
-            if(s !== lastSecond) {
-                lastSecond = s;
+            if(s !== ls) {
+                ls = s;
 
-                // CÁLCULO DE SINAL INDEPENDENTE
-                const colorTarget = (m % 2 === 0) ? "vermelho" : "preto";
-                const activeEntry = (m % 2 === 0 || m % 3 === 0);
-                const whiteEntry = (m % 3 === 0);
-                const ref = getStoneReference(m);
+                // Lógica de Sinal (Inalterada e Independente)
+                const c = (m % 2 === 0) ? "vermelho" : "preto";
+                const a = (m % 2 === 0 || m % 3 === 0);
+                const w = (m % 3 === 0);
+                const st = getSecureStone(m, s);
 
-                // EXIBIÇÃO VISUAL (35s)
-                if(s === 35 && activeEntry) {
-                    const flash = document.getElementById('flash-overlay');
-                    flash.className = (colorTarget === "vermelho") ? "bg-vermelho" : "bg-preto";
-                    flash.style.opacity = "1";
-
-                    const colorLabel = document.getElementById('target-color');
-                    colorLabel.innerText = colorTarget;
-                    colorLabel.style.color = (colorTarget === "vermelho") ? "#ff0000" : "#fff";
+                // VISUAL (34s)
+                if(s === 34 && a) {
+                    const box = document.getElementById('box-ui');
+                    box.className = "signal-box " + (c === "vermelho" ? "alert-red" : "alert-black");
                     
-                    const refLabel = document.getElementById('stone-ref');
-                    refLabel.innerText = "pós " + ref;
-                    refLabel.classList.remove('hidden');
-                    
-                    if(whiteEntry) document.getElementById('white-warn').classList.remove('hidden');
+                    document.getElementById('target-ui').innerText = c;
+                    document.getElementById('target-ui').style.color = (c === "vermelho") ? "#ff0000" : "#fff";
+                    document.getElementById('ref-ui').innerText = "pós " + st;
+                    document.getElementById('status-line').innerText = "FLUXO IDENTIFICADO";
+                    if(w) document.getElementById('white-shield').classList.remove('hidden');
                 }
 
-                // COMANDO DE VOZ TÁTICO (46s)
-                if(s === 46 && activeEntry) {
-                    let text = "após o " + ref + ", entrar no " + colorTarget;
-                    if(whiteEntry) text += " com proteção no branco";
-                    speak(text);
+                // COMANDO DE VOZ (46s)
+                if(s === 46 && a) {
+                    let txt = "pós " + st + ", entrar no " + c;
+                    if(w) txt += " com proteção no branco";
+                    talk(txt);
                 }
 
-                // RESET DE INTERFACE (05s)
+                // LIMPEZA AUTOMÁTICA (05s)
                 if(s === 5) {
-                    document.getElementById('flash-overlay').style.opacity = "0";
-                    document.getElementById('target-color').innerText = "---";
-                    document.getElementById('stone-ref').classList.add('hidden');
-                    document.getElementById('white-warn').classList.add('hidden');
+                    document.getElementById('box-ui').className = "signal-box";
+                    document.getElementById('target-ui').innerText = "---";
+                    document.getElementById('target-ui').style.color = "#fff";
+                    document.getElementById('ref-ui').innerText = "";
+                    document.getElementById('status-line').innerText = "MONITORANDO FLUXO...";
+                    document.getElementById('white-shield').classList.add('hidden');
                 }
             }
         }, 100);
