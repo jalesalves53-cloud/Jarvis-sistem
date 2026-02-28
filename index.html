@@ -3,141 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JARVIS MK-29 | INCONTESTÁVEL</title>
+    <title>MARK-32 | TACTICAL FINAL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
-        body { background: #000; color: #fff; font-family: 'Orbitron', sans-serif; height: 100vh; margin: 0; overflow: hidden; }
-        .glass { background: rgba(0, 242, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(0, 242, 255, 0.2); }
-        .core-radar { width: 280px; height: 280px; border: 2px solid #00f2ff; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; box-shadow: 0 0 50px rgba(0, 242, 255, 0.2); }
-        .scan-line { position: absolute; width: 100%; height: 100%; border-radius: 50%; border-top: 2px solid #ff0055; animation: rotate 4s linear infinite; }
-        @keyframes rotate { 100% { transform: rotate(360deg); } }
+        body { background: #000; color: #fff; font-family: 'Orbitron', sans-serif; height: 100vh; overflow: hidden; margin: 0; }
+        #quantum-flash { position: absolute; inset: 0; opacity: 0; transition: opacity 0.1s; z-index: 1; pointer-events: none; }
+        .hud-overlay { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; }
+        .red-zone { background: radial-gradient(circle, #ff0000 0%, transparent 75%); opacity: 0.7 !important; border: 4px solid #ff0000; }
+        .black-zone { background: radial-gradient(circle, #333 0%, transparent 75%); opacity: 0.8 !important; border: 4px solid #444; }
+        .white-border { border: 8px solid #fff !important; box-shadow: inset 0 0 30px #fff; }
+        .white-glitch { animation: glitch 0.2s infinite; color: #fff; text-shadow: 0 0 10px #00f2ff; }
+        @keyframes glitch { 0% { transform: translate(0); } 50% { transform: translate(-2px, 1px); } 100% { transform: translate(0); } }
+        .input-access { background: transparent; border: 1px solid #00f2ff; color: #fff; padding: 10px; border-radius: 5px; text-align: center; width: 220px; outline: none; font-size: 14px; }
         .hidden { display: none !important; }
-        input { background: rgba(0,0,0,0.5); border: 1px solid #00f2ff; color: #fff; padding: 10px; border-radius: 5px; outline: none; width: 100%; }
-        button { background: #00f2ff; color: #000; font-weight: bold; padding: 10px 20px; border-radius: 5px; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #ff0055; color: #fff; }
     </style>
 </head>
-<body class="flex items-center justify-center">
+<body onclick="enableAudio()">
 
-    <div id="login-screen" class="glass p-8 rounded-2xl w-80 flex flex-col gap-4 z-50">
-        <h1 class="text-center text-[#00f2ff] text-xl font-black mb-4 uppercase tracking-tighter">Acesso Restrito Jarvis</h1>
-        <input type="text" id="user-input" placeholder="Usuário">
-        <input type="password" id="pass-input" placeholder="Senha">
-        <button onclick="checkLogin()">AUTENTICAR</button>
-        <p id="error-msg" class="text-red-500 text-[10px] text-center hidden">Credenciais Inválidas</p>
+    <div id="quantum-flash"></div>
+
+    <div id="access-screen" class="hud-overlay bg-black">
+        <h1 class="text-[#00f2ff] text-2xl font-black mb-8 tracking-[0.3em] uppercase">Mark-32</h1>
+        <input type="password" id="access-key" class="input-access" placeholder="CHAVE JARVIS">
+        <button onclick="validate()" class="mt-6 text-[#00f2ff] border border-[#00f2ff] px-10 py-2 font-bold hover:bg-[#00f2ff] hover:text-black transition-all">CONECTAR</button>
+        <p id="err" class="text-red-600 text-[10px] mt-4 hidden">ACESSO NEGADO</p>
     </div>
 
-    <div id="main-system" class="hidden flex flex-col items-center gap-6">
-        <div class="core-radar">
-            <div class="scan-line"></div>
-            <h2 id="status-text" class="text-[8px] tracking-[0.5em] text-cyan-400 mb-2">RADAR OPERACIONAL</h2>
-            <div id="timer" class="text-6xl font-black italic">00</div>
-            <p id="cmd-info" class="text-[9px] mt-4 opacity-50 text-center uppercase px-6">Sincronizado com TipMiner</p>
-        </div>
-        
-        <div onclick="toggleSettings()" class="cursor-pointer opacity-50 hover:opacity-100 transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00f2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-        </div>
-    </div>
-
-    <div id="config-modal" class="hidden absolute glass p-6 rounded-xl w-72 flex flex-col gap-3">
-        <h3 class="text-[10px] font-bold text-cyan-400 mb-2 uppercase">Alterar Credenciais</h3>
-        <input type="text" id="new-user" placeholder="Novo Usuário">
-        <input type="password" id="new-pass" placeholder="Nova Senha">
-        <button onclick="saveNewCreds()">SALVAR E FECHAR</button>
-        <button onclick="toggleSettings()" class="bg-transparent border border-red-500 text-red-500 mt-2">CANCELAR</button>
+    <div id="main-hud" class="hud-overlay hidden">
+        <div id="status" class="text-[9px] tracking-[0.5em] text-cyan-500 mb-2 uppercase">Sincronia Estável</div>
+        <div id="timer" class="text-9xl font-black italic tracking-tighter">00</div>
+        <div id="prediction" class="text-5xl font-black mt-4 uppercase"></div>
+        <div id="white-tag" class="hidden white-glitch text-xl mt-4 font-black uppercase">BRANCO ATIVO</div>
     </div>
 
     <script>
         const voice = window.speechSynthesis;
-        let isSystemActive = false;
-        let lastLoggedS = -1;
+        let active = false;
+        let lastS = -1;
 
-        // Credenciais Iniciais (LocalStorage)
-        if(!localStorage.getItem('jarvis_user')) {
-            localStorage.setItem('jarvis_user', 'admin');
-            localStorage.setItem('jarvis_pass', '1234');
-        }
-
-        function speak(t, p=0.8, r=1.4) {
+        function speak(t) {
             voice.cancel();
             const m = new SpeechSynthesisUtterance(t);
-            m.lang = 'pt-BR'; m.pitch = p; m.rate = r;
+            m.lang = 'pt-BR';
+            m.pitch = 0.55; 
+            m.rate = 1.35; 
             voice.speak(m);
         }
 
-        function checkLogin() {
-            const u = document.getElementById('user-input').value;
-            const p = document.getElementById('pass-input').value;
-            if(u === localStorage.getItem('jarvis_user') && p === localStorage.getItem('jarvis_pass')) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('main-system').classList.remove('hidden');
-                isSystemActive = true;
-                speak("Acesso concedido. Bem-vindo, Comandante. Motor MK-29 ativo.", 0.7, 1.2);
+        function enableAudio() { /* Unlock audio context */ }
+
+        function validate() {
+            const k = document.getElementById('access-key').value;
+            if(k.toLowerCase() === "jarvis") {
+                document.getElementById('access-screen').classList.add('hidden');
+                document.getElementById('main-hud').classList.remove('hidden');
+                active = true;
+                speak("Sistemas prontos.");
             } else {
-                document.getElementById('error-msg').classList.remove('hidden');
+                document.getElementById('err').classList.remove('hidden');
             }
         }
 
-        function toggleSettings() {
-            document.getElementById('config-modal').classList.toggle('hidden');
-        }
-
-        function saveNewCreds() {
-            const u = document.getElementById('new-user').value;
-            const p = document.getElementById('new-pass').value;
-            if(u && p) {
-                localStorage.setItem('jarvis_user', u);
-                localStorage.setItem('jarvis_pass', p);
-                alert("Credenciais atualizadas com sucesso!");
-                toggleSettings();
-            }
-        }
-
-        // MOTOR DE ANÁLISE IMBATÍVEL MK-29
         setInterval(() => {
-            if(!isSystemActive) return;
+            if(!active) return;
 
             const now = new Date();
             const s = now.getSeconds();
             const m = now.getMinutes();
+            
             document.getElementById('timer').innerText = String(s).padStart(2, '0');
 
-            if(s !== lastLoggedS) {
-                lastLoggedS = s;
+            if(s !== lastS) {
+                lastS = s;
 
-                // Janela de Branco Múltiplo (Fibonacci + Eco)
-                const whiteZone = ([1,2,3,5,8,13,21,34,55].includes(m % 60) || m % 4 === 0);
+                // Lógica de Sniper (Intervalos Táticos)
+                const isSniper = (m % 2 === 0 || m % 3 === 0);
+                const isWhite = (m % 3 === 0 || m % 5 === 0 || m % 10 === 0);
 
-                if(s === 45) {
-                    if(whiteZone) {
-                        speak("Alerta de Branco Crítico. Prepare cobertura dupla.");
-                        document.getElementById('status-text').innerText = "CONVERGÊNCIA TOTAL";
-                        document.getElementById('status-text').style.color = "#ff0055";
+                // GATILHO VISUAL (38s) - Antecipação máxima
+                if(s === 38 && isSniper) {
+                    const color = (m % 2 === 0) ? "VERMELHO" : "PRETO";
+                    const flash = document.getElementById('quantum-flash');
+                    const pred = document.getElementById('prediction');
+                    
+                    flash.className = color === "VERMELHO" ? "red-zone" : "black-zone";
+                    if(isWhite) flash.classList.add('white-border');
+                    
+                    flash.style.opacity = "1";
+                    pred.innerText = color;
+                    pred.style.color = (color === "VERMELHO") ? "#ff0000" : "#fff";
+                    if(isWhite) document.getElementById('white-tag').classList.remove('hidden');
+                    
+                    document.getElementById('status').innerText = "ALVO CONFIRMADO";
+                }
+
+                // GATILHO VOCAL RESUMIDO (48s) - Comando seco
+                if(s === 48 && isSniper) {
+                    const color = (m % 2 === 0) ? "Vermelho" : "Preto";
+                    if (isWhite) {
+                        speak(`Entrada ${color} e branco.`);
                     } else {
-                        speak("Analisando fluxo.");
-                        document.getElementById('status-text').innerText = "RADAR OPERACIONAL";
-                        document.getElementById('status-text').style.color = "#00f2ff";
+                        speak(`Entrada ${color}.`);
                     }
                 }
 
-                if(s === 52) { // Gatilho de Precisão God Mode
-                    const cor = (m % 2 === 0) ? "VERMELHO" : "PRETO";
-                    if(whiteZone) {
-                        speak(`Atenção: Entrar no ${cor}. O alvo principal é o branco.`, 1.2);
-                        document.getElementById('cmd-info').innerText = `ALVO: ${cor} + BRANCO`;
-                    } else {
-                        speak(`Entrar no ${cor}. Proteja o branco.`);
-                        document.getElementById('cmd-info').innerText = `ALVO: ${cor}`;
-                    }
+                // COMANDO RESIDUAL / ECO (02s)
+                if(s === 2 && isWhite) {
+                    speak("Branco duplo.");
                 }
 
-                if(s === 2 && whiteZone) { // Protocolo Eco de Branco
-                    speak("Mantenha o branco. Sequência múltipla detectada.", 1.5);
+                // RESET HUD (04s)
+                if(s === 4) {
+                    document.getElementById('quantum-flash').style.opacity = "0";
+                    document.getElementById('quantum-flash').classList.remove('white-border');
+                    document.getElementById('prediction').innerText = "";
+                    document.getElementById('white-tag').classList.add('hidden');
+                    document.getElementById('status').innerText = "SINCRONIA ESTÁVEL";
                 }
             }
-        }, 1000);
+        }, 100); 
     </script>
 </body>
 </html>
