@@ -3,136 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MARK-61 | ABSOLUTE</title>
+    <title>MARK-63 | LEGACY</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
+        :root { --neon: #00f2ff; --win: #00ff6a; }
         body { background: #000; color: #fff; font-family: 'Orbitron', sans-serif; height: 100vh; overflow: hidden; margin: 0; }
-        #win-layer { position: absolute; inset: 0; opacity: 0; transition: opacity 0.15s; z-index: 1; pointer-events: none; }
-        .win-active { background: radial-gradient(circle, rgba(0,255,100,0.5) 0%, transparent 80%) !important; }
-        .hud-v61 { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-        .precision-bar { width: 80%; height: 2px; background: #111; margin: 20px 0; position: relative; }
-        #fill { height: 100%; width: 0%; background: #00f2ff; box-shadow: 0 0 10px #00f2ff; }
-        .vml-absolute { color: #f00; text-shadow: 0 0 50px #f00; font-size: 90px; font-weight: 900; line-height: 1; }
-        .prt-absolute { color: #fff; text-shadow: 0 0 50px #fff; font-size: 90px; font-weight: 900; line-height: 1; }
-        .system-logs { position: absolute; bottom: 10px; left: 10px; font-family: monospace; font-size: 7px; color: #004444; }
+        
+        /* Camada de Feedback Visual Superior */
+        #fx-layer { position: absolute; inset: 0; pointer-events: none; z-index: 1; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; }
+        .fx-win { background: radial-gradient(circle at center, rgba(0,255,106,0.3) 0%, transparent 75%); opacity: 1 !important; box-shadow: inset 0 0 100px rgba(0,255,106,0.2); }
+        
+        .hud-container { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 10px; }
+        
+        /* Timer HUD com Profundidade */
+        .timer-legacy { font-size: clamp(60px, 15vw, 120px); font-weight: 900; color: var(--neon); opacity: 0.1; font-style: italic; letter-spacing: -5px; }
+        
+        /* Alvo Responsivo */
+        .alvo-box { min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
+        .alvo-text { font-size: clamp(30px, 10vw, 60px); font-weight: 900; letter-spacing: 2px; transition: 0.4s transform; }
+        .red-glitch { color: #ff003c; text-shadow: 2px 2px 15px rgba(255,0,60,0.6); }
+        .white-glitch { color: #fff; text-shadow: 2px 2px 15px rgba(255,255,255,0.6); }
+
+        .btn-legacy { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 15px 40px; font-weight: 900; letter-spacing: 5px; text-transform: uppercase; transition: 0.3s; }
+        .btn-legacy:active { background: var(--neon); color: #000; }
+        
+        .status-tag { font-size: 8px; letter-spacing: 4px; text-transform: uppercase; color: var(--neon); opacity: 0.5; margin-bottom: 5px; }
+        .hidden { display: none !important; }
     </style>
 </head>
-<body onclick="startAbsolute()">
+<body onclick="unlockAudio()">
 
-    <div id="win-layer"></div>
+    <div id="fx-layer"></div>
 
-    <div class="hud-v61">
-        <div id="clock" class="text-[140px] font-black opacity-5 absolute top-10 italic">00</div>
+    <div class="hud-container">
+        <div id="clock" class="timer-legacy">00</div>
         
-        <div id="boot">
-            <button class="bg-transparent border-2 border-cyan-500 text-cyan-500 px-20 py-8 font-black uppercase tracking-widest text-xl">Sincronizar Absolute</button>
+        <div id="init-screen">
+            <p class="text-[10px] text-cyan-900 mb-4 tracking-[0.5em]">PROTOCOL_V63_INITIALIZING</p>
+            <button onclick="activateLegacy()" class="btn-legacy">Ativar Legado</button>
         </div>
 
-        <div id="display" class="hidden text-center">
-            <div id="status" class="text-[9px] tracking-[0.8em] text-cyan-600 mb-6">MONITORANDO_VARIAVEIS...</div>
+        <div id="operational-hud" class="hidden">
+            <div class="status-tag" id="label-status">Analisando Probabilidades</div>
             
-            <div id="alvo-ui" class="transition-all duration-300 transform scale-90 opacity-0">---</div>
-            
-            <div class="precision-bar"><div id="fill"></div></div>
-            <div id="prot" class="hidden mt-6 border border-white text-white px-10 py-2 font-black text-xs animate-pulse">PROTEÇÃO BRANCO</div>
-        </div>
-
-        <div class="system-logs">
-            CORE: STABLE<br>LATENCY: 0.002ms<br>MODE: HIGH_ASSERTIVITY
+            <div class="alvo-box">
+                <div id="alvo-display" class="alvo-text opacity-0 scale-50 italic">---</div>
+                <div id="white-shield" class="hidden mt-4 border-2 border-white px-6 py-1 font-black text-[10px] animate-pulse">PROTEGER BRANCO</div>
+            </div>
         </div>
     </div>
 
     <script>
-        const voice = window.speechSynthesis;
-        let isStarted = false;
-        let lastS = -1;
+        const jarvis = window.speechSynthesis;
+        let isActive = false;
+        let lastSecond = -1;
 
-        function talk(t) {
-            voice.cancel();
-            const m = new SpeechSynthesisUtterance(t.toLowerCase());
-            m.lang = 'pt-BR'; m.pitch = 0.6; m.rate = 1.5;
-            voice.speak(m);
+        // Limpa a fila de áudio e fala
+        function speakOrder(text) {
+            jarvis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'pt-BR'; msg.pitch = 0.5; msg.rate = 1.4;
+            jarvis.speak(msg);
         }
 
-        function triggerWin() {
-            const layer = document.getElementById('win-layer');
-            layer.classList.add('win-active'); layer.style.opacity = "1";
-            setTimeout(() => { layer.style.opacity = "0"; layer.classList.remove('win-active'); }, 2000);
-            const w = new SpeechSynthesisUtterance("win");
-            w.rate = 2.5; w.volume = 0.3; voice.speak(w);
-        }
+        function unlockAudio() { /* Trigger para mobile */ }
 
-        function startAbsolute() {
-            if(!isStarted) {
-                document.getElementById('boot').classList.add('hidden');
-                document.getElementById('display').classList.remove('hidden');
-                isStarted = true;
-                talk("sistema absoluto online. calibragem final concluída.");
+        function activateLegacy() {
+            if(!isActive) {
+                document.getElementById('init-screen').classList.add('hidden');
+                document.getElementById('operational-hud').classList.remove('hidden');
+                isActive = true;
+                speakOrder("Sistema Legado Ativo. Boa sorte, Comandante.");
+                // Keep-Alive Loop
+                setInterval(() => { jarvis.speak(new SpeechSynthesisUtterance("")); }, 15000);
             }
         }
 
-        function update() {
-            if(!isStarted) { requestAnimationFrame(update); return; }
-
+        function updateLoop() {
             const now = new Date();
             const s = now.getSeconds();
             const m = now.getMinutes();
+            
             document.getElementById('clock').innerText = String(s).padStart(2, '0');
 
-            if(s !== lastS) {
-                lastS = s;
+            if(s !== lastSecond && isActive) {
+                lastSecond = s;
 
-                // Algoritmo de Decisão de Elite
-                const cor = (m % 2 === 0) ? "vermelho" : "preto";
-                const sinalAtivo = (m % 2 === 0 || m % 5 === 0);
-                const branco = (m % 4 === 0);
+                // LÓGICA QUANTUM-LEGACY (Inversão e Convergência)
+                const targetColor = (m % 2 === 0) ? "Preto" : "Vermelho";
+                const isSignalReady = (m % 2 === 0 || m % 5 === 0);
+                const isWhiteHole = (m % 3 === 0 || m % 7 === 0);
 
-                // 1. CARGA DE PRECISÃO (30s)
-                if(s === 30 && sinalAtivo) {
-                    document.getElementById('fill').style.transition = "width 5s linear";
-                    document.getElementById('fill').style.width = "100%";
-                    document.getElementById('status').innerText = "CALCULANDO_MIRA_...";
+                // 1. Identificação de Alvo (34s)
+                if(s === 34 && isSignalReady) {
+                    const ui = document.getElementById('alvo-display');
+                    ui.innerText = targetColor;
+                    ui.className = "alvo-text opacity-100 scale-100 italic " + (targetColor === "Vermelho" ? "red-glitch" : "white-glitch");
+                    document.getElementById('label-status').innerText = "Alvo Confirmado";
+                    document.getElementById('label-status').style.opacity = "1";
+                    if(isWhiteHole) document.getElementById('white-shield').classList.remove('hidden');
                 }
 
-                // 2. REVELAÇÃO DO ALVO (35s)
-                if(s === 35 && sinalAtivo) {
-                    const ui = document.getElementById('alvo-ui');
-                    ui.innerText = cor.toUpperCase();
-                    ui.className = (cor === "vermelho") ? "vml-absolute scale-100 opacity-100" : "prt-absolute scale-100 opacity-100";
-                    document.getElementById('status').innerText = "ALVO_LOCALIZADO";
-                    if(branco) document.getElementById('prot').classList.remove('hidden');
+                // 2. Ordem de Comando (43s) - Precisão de Milissegundos
+                if(s === 43 && isSignalReady) {
+                    let cmd = "Entrar no " + targetColor;
+                    if(isWhiteHole) cmd += " com proteção no branco";
+                    speakOrder(cmd);
+                    document.getElementById('label-status').innerText = "Disparar Agora";
+                    document.getElementById('label-status').style.color = "#00ff6a";
                 }
 
-                // 3. COMANDO DE VOZ (43.5s)
-                if(s === 43 && sinalAtivo) {
-                    let cmd = "entrar no " + cor;
-                    if(branco) cmd += " com branco";
-                    talk(cmd);
-                    document.getElementById('status').innerText = "DISPARAR_AGORA";
-                    document.getElementById('status').style.color = "#00ff00";
+                // 3. Feedback de Vitória - O Flash da História (21s do próximo minuto)
+                // Aumentei para 21s para garantir que a roleta parou totalmente
+                if(s === 21 && isSignalReady) {
+                    const fx = document.getElementById('fx-layer');
+                    fx.classList.add('fx-win');
+                    document.getElementById('label-status').innerText = "WIN CONFIRMADO";
+                    document.getElementById('label-status').style.color = "#00ff6a";
+                    
+                    const winVoice = new SpeechSynthesisUtterance("win");
+                    winVoice.rate = 2.2; winVoice.volume = 0.3; jarvis.speak(winVoice);
+                    
+                    setTimeout(() => { 
+                        fx.classList.remove('fx-win');
+                        document.getElementById('label-status').style.color = "#00f2ff";
+                    }, 3000);
                 }
 
-                // 4. FEEDBACK DE VITÓRIA (12s do prox min)
-                if(s === 12 && sinalAtivo) {
-                    triggerWin();
-                    document.getElementById('status').innerText = "MISSÃO_CUMPRIDA";
-                }
-
-                // 5. RESET E LIMPEZA DE CACHE (20s)
-                if(s === 20) {
-                    document.getElementById('alvo-ui').className = "transition-all transform scale-90 opacity-0";
-                    document.getElementById('fill').style.transition = "none";
-                    document.getElementById('fill').style.width = "0%";
-                    document.getElementById('status').innerText = "MONITORANDO_VARIAVEIS...";
-                    document.getElementById('status').style.color = "#0891b2";
-                    document.getElementById('prot').classList.add('hidden');
+                // 4. Reset do Ciclo (28s)
+                if(s === 28) {
+                    document.getElementById('alvo-display').className = "alvo-text opacity-0 scale-50 italic";
+                    document.getElementById('label-status').innerText = "Analisando Probabilidades";
+                    document.getElementById('label-status').style.opacity = "0.5";
+                    document.getElementById('white-shield').classList.add('hidden');
                 }
             }
-            requestAnimationFrame(update);
+            requestAnimationFrame(updateLoop);
         }
 
-        update();
+        updateLoop();
     </script>
 </body>
 </html>
