@@ -3,120 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MARK-58 | DAYLIGHT</title>
+    <title>MARK-61 | ABSOLUTE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
         body { background: #000; color: #fff; font-family: 'Orbitron', sans-serif; height: 100vh; overflow: hidden; margin: 0; }
-        .hud-v5 { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; position: relative; }
-        #bg-pulse { position: absolute; inset: 0; opacity: 0; transition: opacity 0.4s; z-index: 1; }
-        .timer-v5 { font-size: 150px; font-weight: 900; opacity: 0.1; position: absolute; font-style: italic; z-index: 0; }
-        .box-sinal { position: relative; z-index: 10; border-bottom: 4px solid #00f2ff; padding: 20px 40px; background: rgba(0,0,0,0.8); }
-        .txt-vml { color: #ff0000; text-shadow: 0 0 30px #f00; font-size: 75px; font-weight: 900; }
-        .txt-prt { color: #ffffff; text-shadow: 0 0 30px #fff; font-size: 75px; font-weight: 900; }
-        .status-top { position: absolute; top: 30px; font-size: 10px; letter-spacing: 5px; color: #00f2ff; opacity: 0.6; }
-        .hidden { display: none !important; }
+        #win-layer { position: absolute; inset: 0; opacity: 0; transition: opacity 0.15s; z-index: 1; pointer-events: none; }
+        .win-active { background: radial-gradient(circle, rgba(0,255,100,0.5) 0%, transparent 80%) !important; }
+        .hud-v61 { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        .precision-bar { width: 80%; height: 2px; background: #111; margin: 20px 0; position: relative; }
+        #fill { height: 100%; width: 0%; background: #00f2ff; box-shadow: 0 0 10px #00f2ff; }
+        .vml-absolute { color: #f00; text-shadow: 0 0 50px #f00; font-size: 90px; font-weight: 900; line-height: 1; }
+        .prt-absolute { color: #fff; text-shadow: 0 0 50px #fff; font-size: 90px; font-weight: 900; line-height: 1; }
+        .system-logs { position: absolute; bottom: 10px; left: 10px; font-family: monospace; font-size: 7px; color: #004444; }
     </style>
 </head>
-<body onclick="iniciarDia()">
+<body onclick="startAbsolute()">
 
-    <div id="bg-pulse"></div>
+    <div id="win-layer"></div>
 
-    <div class="hud-v5">
-        <div id="cron" class="timer-v5">00</div>
-        <div class="status-top animate-pulse">SISTEMA_OPERACIONAL_V58</div>
+    <div class="hud-v61">
+        <div id="clock" class="text-[140px] font-black opacity-5 absolute top-10 italic">00</div>
         
-        <div id="boot-v5" class="text-center z-20">
-            <h2 class="text-cyan-400 text-xl font-black mb-10 tracking-[1em]">JARVIS_ON</h2>
-            <button class="bg-cyan-500 text-black px-20 py-5 font-black rounded-sm uppercase hover:bg-white transition-all">Iniciar Dia</button>
+        <div id="boot">
+            <button class="bg-transparent border-2 border-cyan-500 text-cyan-500 px-20 py-8 font-black uppercase tracking-widest text-xl">Sincronizar Absolute</button>
         </div>
 
-        <div id="hud-v5" class="hidden text-center z-20">
-            <div id="msg-v5" class="text-[11px] font-bold text-cyan-700 mb-4 tracking-widest">ANALISANDO FLUXO...</div>
-            <div class="box-sinal" id="sinal-container">
-                <div id="alvo-v5" class="italic tracking-tighter">---</div>
-            </div>
-            <div id="brc-v5" class="hidden mt-10 bg-white text-black px-12 py-2 font-black rounded-sm animate-bounce">BRANCO</div>
+        <div id="display" class="hidden text-center">
+            <div id="status" class="text-[9px] tracking-[0.8em] text-cyan-600 mb-6">MONITORANDO_VARIAVEIS...</div>
+            
+            <div id="alvo-ui" class="transition-all duration-300 transform scale-90 opacity-0">---</div>
+            
+            <div class="precision-bar"><div id="fill"></div></div>
+            <div id="prot" class="hidden mt-6 border border-white text-white px-10 py-2 font-black text-xs animate-pulse">PROTEÇÃO BRANCO</div>
+        </div>
+
+        <div class="system-logs">
+            CORE: STABLE<br>LATENCY: 0.002ms<br>MODE: HIGH_ASSERTIVITY
         </div>
     </div>
 
     <script>
-        const jarvis = window.speechSynthesis;
-        let rodando = false;
-        let ls = -1;
+        const voice = window.speechSynthesis;
+        let isStarted = false;
+        let lastS = -1;
 
-        function falar(t) {
-            jarvis.cancel();
-            const f = new SpeechSynthesisUtterance(t.toLowerCase());
-            f.lang = 'pt-BR'; f.pitch = 0.65; f.rate = 1.45;
-            jarvis.speak(f);
+        function talk(t) {
+            voice.cancel();
+            const m = new SpeechSynthesisUtterance(t.toLowerCase());
+            m.lang = 'pt-BR'; m.pitch = 0.6; m.rate = 1.5;
+            voice.speak(m);
         }
 
-        function iniciarDia() {
-            if(!rodando) {
-                document.getElementById('boot-v5').classList.add('hidden');
-                document.getElementById('hud-v5').classList.remove('hidden');
-                rodando = true;
-                falar("bom dia comandante. sistema mark 58 calibrado e pronto.");
-                setInterval(() => { jarvis.speak(new SpeechSynthesisUtterance("")); }, 25000); // Keep-alive
+        function triggerWin() {
+            const layer = document.getElementById('win-layer');
+            layer.classList.add('win-active'); layer.style.opacity = "1";
+            setTimeout(() => { layer.style.opacity = "0"; layer.classList.remove('win-active'); }, 2000);
+            const w = new SpeechSynthesisUtterance("win");
+            w.rate = 2.5; w.volume = 0.3; voice.speak(w);
+        }
+
+        function startAbsolute() {
+            if(!isStarted) {
+                document.getElementById('boot').classList.add('hidden');
+                document.getElementById('display').classList.remove('hidden');
+                isStarted = true;
+                talk("sistema absoluto online. calibragem final concluída.");
             }
         }
 
-        setInterval(() => {
-            if(!rodando) return;
+        function update() {
+            if(!isStarted) { requestAnimationFrame(update); return; }
 
-            const agora = new Date();
-            const s = agora.getSeconds();
-            const m = agora.getMinutes();
-            document.getElementById('cron').innerText = String(s).padStart(2, '0');
+            const now = new Date();
+            const s = now.getSeconds();
+            const m = now.getMinutes();
+            document.getElementById('clock').innerText = String(s).padStart(2, '0');
 
-            if(s !== ls) {
-                ls = s;
+            if(s !== lastS) {
+                lastS = s;
 
-                // Lógica de Sinais (Matriz de Alta Assertividade)
+                // Algoritmo de Decisão de Elite
                 const cor = (m % 2 === 0) ? "vermelho" : "preto";
-                const ativo = (m % 2 === 0 || m % 3 === 0);
-                const branco = (m % 3 === 0 || m % 7 === 0);
+                const sinalAtivo = (m % 2 === 0 || m % 5 === 0);
+                const branco = (m % 4 === 0);
 
-                // GATILHO VISUAL (32s - AVISO)
-                if(s === 32 && ativo) {
-                    document.getElementById('msg-v5').innerText = "CALIBRANDO ENTRADA";
-                    document.getElementById('msg-v5').style.color = "#fbbf24";
+                // 1. CARGA DE PRECISÃO (30s)
+                if(s === 30 && sinalAtivo) {
+                    document.getElementById('fill').style.transition = "width 5s linear";
+                    document.getElementById('fill').style.width = "100%";
+                    document.getElementById('status').innerText = "CALCULANDO_MIRA_...";
                 }
 
-                // EXIBIÇÃO DO ALVO (38s - CONFIRMAÇÃO)
-                if(s === 38 && ativo) {
-                    const ui = document.getElementById('alvo-v5');
+                // 2. REVELAÇÃO DO ALVO (35s)
+                if(s === 35 && sinalAtivo) {
+                    const ui = document.getElementById('alvo-ui');
                     ui.innerText = cor.toUpperCase();
-                    ui.className = (cor === "vermelho") ? "txt-vml" : "txt-prt";
-                    
-                    const bg = document.getElementById('bg-pulse');
-                    bg.style.opacity = "1";
-                    bg.style.background = (cor === "vermelho") ? "radial-gradient(circle, rgba(255,0,0,0.3) 0%, transparent 80%)" : "radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 80%)";
-                    
-                    if(branco) document.getElementById('brc-v5').classList.remove('hidden');
+                    ui.className = (cor === "vermelho") ? "vml-absolute scale-100 opacity-100" : "prt-absolute scale-100 opacity-100";
+                    document.getElementById('status').innerText = "ALVO_LOCALIZADO";
+                    if(branco) document.getElementById('prot').classList.remove('hidden');
                 }
 
-                // COMANDO DE VOZ (42s - HORA DA APOSTA)
-                if(s === 42 && ativo) {
-                    let cmd = "preparar no " + cor;
+                // 3. COMANDO DE VOZ (43.5s)
+                if(s === 43 && sinalAtivo) {
+                    let cmd = "entrar no " + cor;
                     if(branco) cmd += " com branco";
-                    falar(cmd);
-                    document.getElementById('msg-v5').innerText = "EXECUTAR AGORA";
-                    document.getElementById('msg-v5').style.color = "#00ff00";
+                    talk(cmd);
+                    document.getElementById('status').innerText = "DISPARAR_AGORA";
+                    document.getElementById('status').style.color = "#00ff00";
                 }
 
-                // RESET (02s)
-                if(s === 2) {
-                    document.getElementById('alvo-v5').innerText = "---";
-                    document.getElementById('alvo-v5').className = "italic tracking-tighter text-white opacity-20";
-                    document.getElementById('msg-v5').innerText = "ANALISANDO FLUXO...";
-                    document.getElementById('msg-v5').style.color = "#004444";
-                    document.getElementById('brc-v5').classList.add('hidden');
-                    document.getElementById('bg-pulse').style.opacity = "0";
+                // 4. FEEDBACK DE VITÓRIA (12s do prox min)
+                if(s === 12 && sinalAtivo) {
+                    triggerWin();
+                    document.getElementById('status').innerText = "MISSÃO_CUMPRIDA";
+                }
+
+                // 5. RESET E LIMPEZA DE CACHE (20s)
+                if(s === 20) {
+                    document.getElementById('alvo-ui').className = "transition-all transform scale-90 opacity-0";
+                    document.getElementById('fill').style.transition = "none";
+                    document.getElementById('fill').style.width = "0%";
+                    document.getElementById('status').innerText = "MONITORANDO_VARIAVEIS...";
+                    document.getElementById('status').style.color = "#0891b2";
+                    document.getElementById('prot').classList.add('hidden');
                 }
             }
-        }, 100);
+            requestAnimationFrame(update);
+        }
+
+        update();
     </script>
 </body>
 </html>
