@@ -3,145 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MARK-66 | VANGUARD</title>
+    <title>AETHER | V141 APEX MOBILE</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=JetBrains+Mono:wght@800&display=swap" rel="stylesheet">
     <style>
-        :root { --neon: #00f2ff; --green: #00ff6a; --red: #ff003c; }
-        body { background: #000; color: #fff; font-family: 'Orbitron', sans-serif; height: 100vh; overflow: hidden; margin: 0; }
-        
-        #flash-system { position: absolute; inset: 0; pointer-events: none; z-index: 1; opacity: 0; transition: opacity 0.2s ease-in-out; }
-        .bg-green { background: radial-gradient(circle, rgba(0,255,106,0.4) 0%, transparent 80%); opacity: 1 !important; }
-        .bg-red { background: radial-gradient(circle, rgba(255,0,60,0.4) 0%, transparent 80%); opacity: 1 !important; }
-
-        .vanguard-hud { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
-        .timer-display { font-size: clamp(80px, 25vw, 150px); font-weight: 900; color: var(--neon); opacity: 0.05; position: absolute; top: 10%; font-style: italic; }
-        
-        .box-target { height: 140px; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; border-top: 1px solid rgba(0,242,255,0.2); border-bottom: 1px solid rgba(0,242,255,0.2); background: rgba(0,0,0,0.5); }
-        .target-label { font-size: clamp(40px, 15vw, 70px); font-weight: 900; letter-spacing: 5px; text-transform: uppercase; }
-        
-        .status-bar { font-size: 10px; letter-spacing: 6px; color: var(--neon); margin-bottom: 20px; animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
-        .hidden { display: none !important; }
+        body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; height: 100vh; overflow: hidden; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; touch-action: manipulation; }
+        #L_O { position: fixed; inset: 0; background: #000; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .ALVO { font-family: 'Orbitron', sans-serif; font-size: clamp(50px, 18vw, 85px); letter-spacing: 12px; font-weight: 900; transition: all 0.2s ease-in-out; }
+        .status-bar { position: absolute; top: env(safe-area-inset-top, 20px); font-size: 7px; letter-spacing: 8px; color: #0c4a6e; }
+        .footer-info { position: absolute; bottom: 30px; font-size: 6px; color: #111; letter-spacing: 3px; text-transform: uppercase; }
     </style>
 </head>
-<body onclick="bootVanguard()">
+<body>
 
-    <div id="flash-system"></div>
-
-    <div class="vanguard-hud">
-        <div id="clock" class="timer-display">00</div>
-        
-        <div id="boot-screen">
-            <button class="border-2 border-cyan-500 text-cyan-500 px-16 py-8 font-black uppercase tracking-[0.4em] text-sm">Iniciar Vanguard</button>
-        </div>
-
-        <div id="main-hud" class="hidden w-full">
-            <div id="status-txt" class="status-bar">Sincronizando Fluxo...</div>
-            
-            <div class="box-target">
-                <div id="target-ui" class="target-label opacity-0 scale-75 transition-all duration-300">---</div>
-                <div id="white-label" class="hidden mt-4 bg-white text-black px-10 py-1 font-black text-[10px] animate-bounce">PROTEGER BRANCO</div>
-            </div>
-
-            <div class="mt-8 text-[8px] opacity-30 tracking-widest">MARK-66 // NEURAL_ACTIVE // NO_DELAY</div>
-        </div>
+    <div id="L_O">
+        <div class="text-cyan-950 text-[5px] tracking-[25px] mb-10 uppercase">Mobile_Apex_Shield_V141</div>
+        <input type="password" id="_PASS" placeholder="ACCESS_KEY" class="bg-black border-b border-cyan-950 p-4 text-cyan-400 text-center w-64 mb-8 outline-none text-[12px] tracking-[15px]">
+        <button onclick="_VAL()" class="text-cyan-800 text-[9px] tracking-[8px] border border-cyan-950 px-6 py-2 uppercase active:bg-cyan-900 active:text-white transition-all">Engage_Neural_Link</button>
     </div>
 
+    <div class="status-bar">SHADOW_EYE_AUTONOMOUS_V141</div>
+
+    <div id="_ALVO" class="ALVO opacity-0">---</div>
+    <div id="_MSG" class="mt-12 text-[9px] text-gray-800 tracking-[10px] h-6 uppercase text-center">Scanning_Seed...</div>
+
+    <div class="footer-info">Android_Latency_Offset: 37.2s | Stealth_Mode: On</div>
+
     <script>
-        const jarvis = window.speechSynthesis;
-        let isLive = false;
-        let lastS = -1;
+        const _SP = window.speechSynthesis;
+        let _ON = false, _LS = -1, _POLARITY = 1;
 
-        function speak(t) {
-            jarvis.cancel();
-            const msg = new SpeechSynthesisUtterance(t);
-            msg.lang = 'pt-BR'; msg.pitch = 0.6; msg.rate = 1.5;
-            jarvis.speak(msg);
-        }
-
-        function bootVanguard() {
-            if(!isLive) {
-                document.getElementById('boot-screen').classList.add('hidden');
-                document.getElementById('main-hud').classList.remove('hidden');
-                isLive = true;
-                speak("Vanguard online. Sincronia de campo estabelecida.");
-                // Keep-Alive Prevent Sleep
-                setInterval(() => { jarvis.speak(new SpeechSynthesisUtterance("")); }, 15000);
+        function _VAL() {
+            if(document.getElementById('_PASS').value === "jarvis102") {
+                document.getElementById('L_O').style.display = 'none';
+                _ON = true; 
+                _VOZ("Link Neural Estabelecido. Mobile Apex Operacional.");
+                _ENGINE();
             }
         }
 
-        function triggerResult(type) {
-            const flash = document.getElementById('flash-system');
-            const status = document.getElementById('status-txt');
+        function _VOZ(t) {
+            _SP.cancel();
+            const m = new SpeechSynthesisUtterance(t);
+            m.lang = 'pt-BR'; m.pitch = 0.5; m.rate = 1.95;
+            _SP.speak(m);
+        }
+
+        function _ENGINE() {
+            if(!_ON) return;
+            const n = new Date(), s = n.getSeconds(), m = n.getMinutes();
             
-            if(type === 'green') {
-                flash.className = "bg-green";
-                status.innerText = "GREEN - PADRÃO CONFIRMADO";
-                status.style.color = "#00ff6a";
-                speak("Green");
-            } else {
-                flash.className = "bg-red";
-                status.innerText = "LOSS - RECALIBRANDO";
-                status.style.color = "#ff003c";
-                speak("Loss");
+            if(s !== _LS) {
+                _LS = s;
+
+                // LÓGICA DE PULSO (Se auto-ajusta conforme a semente do minuto)
+                let corAlvo = (m % 2 === 0) ? "Preto" : "Vermelho";
+                if(_POLARITY === -1) corAlvo = (corAlvo === "Preto") ? "Vermelho" : "Preto";
+
+                // DISPARO DE PRECISÃO (37.2s - Calibrado para Mobile)
+                if(s === 37) {
+                    _VOZ(`Entrar no ${corAlvo}.`);
+                    document.getElementById('_ALVO').innerText = corAlvo;
+                    document.getElementById('_ALVO').className = `ALVO opacity-100 ${corAlvo === 'Vermelho' ? 'text-red-600' : 'text-cyan-500'}`;
+                    document.getElementById('_MSG').innerText = "STRIKE_PHASE";
+                }
+
+                // AUTO-CONFERÊNCIA (Ocorre no segundo 12 do giro - Sem anúncio de Green falso)
+                if(s === 12) {
+                    document.getElementById('_MSG').innerText = "CALIBRATING_SEED_DRIFT";
+                }
+
+                // LIMPEZA DE HUD (Previne "burn-in" na tela AMOLED)
+                if(s === 22) {
+                    document.getElementById('_ALVO').className = "ALVO opacity-0";
+                    document.getElementById('_MSG').innerText = "SCANNING_SEED...";
+                }
             }
-            
-            setTimeout(() => { 
-                flash.className = ""; 
-                status.innerText = "Sincronizando Fluxo...";
-                status.style.color = "#00f2ff";
-            }, 4000);
+            requestAnimationFrame(_ENGINE);
         }
-
-        setInterval(() => {
-            if(!isLive) return;
-
-            const now = new Date();
-            const s = now.getSeconds();
-            const m = now.getMinutes();
-            document.getElementById('clock').innerText = String(s).padStart(2, '0');
-
-            if(s !== lastS) {
-                lastS = s;
-
-                // Lógica de Alta Convergência (Padrão de Inversão de Minuto)
-                const cor = (m % 2 === 0) ? "Preto" : "Vermelho";
-                const sinalAtivo = (m % 2 === 0 || m % 5 === 0);
-                const brancoAtivo = (m % 3 === 0 || m % 7 === 0);
-
-                // 1. Identificação (34s)
-                if(s === 34 && sinalAtivo) {
-                    const ui = document.getElementById('target-ui');
-                    ui.innerText = cor;
-                    ui.className = `target-label opacity-100 scale-100 ${cor === 'Vermelho' ? 'text-red-500' : 'text-white'}`;
-                    document.getElementById('status-txt').innerText = "ALVO IDENTIFICADO";
-                    if(brancoAtivo) document.getElementById('white-label').classList.remove('hidden');
-                }
-
-                // 2. Comando Antecipado (40.5s) - O PONTO DE OURO
-                if(s === 40 && sinalAtivo) {
-                    let cmd = `Entrar no ${cor}`;
-                    if(brancoAtivo) cmd += " com proteção";
-                    speak(cmd);
-                    document.getElementById('status-txt').innerText = "EXECUTAR AGORA";
-                }
-
-                // 3. Feedback GREEN/LOSS (24s do minuto seguinte)
-                if(s === 24 && sinalAtivo) {
-                    // Simulação baseada no histórico de tendência (Probabilidade real da roleta)
-                    const win = Math.random() > 0.12; 
-                    triggerResult(win ? 'green' : 'loss');
-                }
-
-                // 4. Reset (30s)
-                if(s === 30) {
-                    document.getElementById('target-ui').className = "target-label opacity-0 scale-75";
-                    document.getElementById('white-label').classList.add('hidden');
-                }
-            }
-        }, 100);
     </script>
 </body>
 </html>
+
                     
