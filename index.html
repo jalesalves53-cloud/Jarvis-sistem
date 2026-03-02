@@ -4,68 +4,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AETHER | CORE-STRIKE V141</title>
+    <title>AETHER | CORE-STRIKE V142</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=JetBrains+Mono:wght@800&display=swap" rel="stylesheet">
     <style>
-        body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; height: 100vh; overflow: hidden; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         #L_O { position: fixed; inset: 0; background: #000; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .ALVO { font-family: 'Orbitron', sans-serif; font-size: clamp(60px, 15vw, 110px); letter-spacing: 20px; font-weight: 900; text-transform: uppercase; }
-        .status-bar { position: absolute; top: 15px; font-size: 7px; letter-spacing: 10px; color: #083344; text-transform: uppercase; }
+        .ALVO { font-family: 'Orbitron', sans-serif; font-size: clamp(50px, 12vw, 90px); letter-spacing: 15px; font-weight: 900; }
+        .glitch { animation: glitch 1s linear infinite; }
+        @keyframes glitch { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
     <div id="L_O">
-        <div class="text-cyan-950 text-[6px] tracking-[30px] mb-10 uppercase">Security_Lock_V141</div>
-        <input type="password" id="_PASS" placeholder="ACCESS_KEY" class="bg-black border-b border-cyan-950 p-4 text-cyan-400 text-center w-80 mb-6 outline-none text-[12px] tracking-[15px]">
-        <button onclick="_VAL()" class="text-cyan-800 text-[8px] tracking-[10px] uppercase border border-cyan-950 px-6 py-2">Authorize_Access</button>
+        <input type="password" id="_PASS" placeholder="ACCESS_KEY" class="bg-black border-b border-cyan-900 p-4 text-cyan-500 text-center w-64 outline-none tracking-[10px]">
+        <button onclick="_VAL()" class="mt-8 text-cyan-900 text-[8px] tracking-[5px] uppercase">Initialize_Strike</button>
     </div>
 
-    <div class="status-bar">Core_Neural_Strike_Online</div>
-    <div id="_STS" class="text-[8px] tracking-[25px] text-cyan-950 mb-12 uppercase">Autonomous_Cores</div>
     <div id="_ALVO" class="ALVO opacity-0">---</div>
-    <div id="_LOG" class="mt-12 text-[9px] text-gray-800 tracking-[10px] h-6 uppercase">Scanning_Seed_Pattern</div>
+    <div id="_STS" class="fixed bottom-10 text-[7px] tracking-[15px] text-cyan-950 uppercase">Neural_Stability_Active</div>
 
     <script>
         const _SP = window.speechSynthesis;
-        let _ON = false, _LS = -1, _POLARITY = 1;
-
-        function _VAL() {
-            if(document.getElementById('_PASS').value === "jarvis102") {
-                document.getElementById('L_O').style.display = 'none';
-                _ON = true; 
-                _VOZ("Acesso Autorizado. Core Strike Operacional.");
-                _ENGINE();
-            }
-        }
+        let _ON = false, _LS = -1;
 
         function _VOZ(t) {
             _SP.cancel();
             const m = new SpeechSynthesisUtterance(t);
-            m.lang = 'pt-BR'; m.pitch = 0.35; m.rate = 2.0;
+            m.lang = 'pt-BR'; m.pitch = 0.4; m.rate = 2.2; // Voz mais grave e rápida
             _SP.speak(m);
         }
 
-        function _ENGINE() {
+        function _VAL() {
+            if(document.getElementById('_PASS').value === "jarvis102") {
+                document.getElementById('L_O').style.display = 'none';
+                _ON = true; _VOZ("Sistemas operacionais. Excelência ativada.");
+                _EXEC();
+            }
+        }
+
+        function _EXEC() {
             if(!_ON) return;
             const n = new Date(), s = n.getSeconds(), m = n.getMinutes();
             if(s !== _LS) {
                 _LS = s;
-                let corAlvo = (m % 2 === 0) ? "Preto" : "Vermelho";
-                if(_POLARITY === -1) corAlvo = (corAlvo === "Preto") ? "Vermelho" : "Preto";
-
+                let c = (m % 2 === 0) ? "Preto" : "Vermelho";
+                
                 if(s === 37) {
-                    _VOZ(`Entrar no ${corAlvo}.`);
-                    document.getElementById('_ALVO').innerText = corAlvo;
-                    document.getElementById('_ALVO').className = `ALVO opacity-100 ${corAlvo === 'Vermelho' ? 'text-red-700' : 'text-cyan-400'}`;
-                    document.getElementById('_LOG').innerText = "STRIKE_CONFIRMED";
+                    _VOZ(`Entrar no ${c}`);
+                    const el = document.getElementById('_ALVO');
+                    el.innerText = c;
+                    el.className = `ALVO opacity-100 glitch ${c === 'Vermelho' ? 'text-red-600' : 'text-cyan-500'}`;
                 }
-                if(s === 22) {
-                    document.getElementById('_ALVO').className = "ALVO opacity-0";
-                    document.getElementById('_LOG').innerText = "MONITORING_SEED";
-                }
+                if(s === 20) document.getElementById('_ALVO').className = "ALVO opacity-0";
             }
-            requestAnimationFrame(_ENGINE);
+            requestAnimationFrame(_EXEC);
         }
     </script>
 </body>
