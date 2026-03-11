@@ -3,56 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JARVIS v8.5 APEX - 97% ACCURACY</title>
+    <title>JARVIS v8.6 - DATA VISION</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
         :root { --neon: #00f2ff; --bg: #000; --signal: #00ff88; --danger: #ff0044; --white: #ffffff; }
         body { margin: 0; background: var(--bg); color: #fff; font-family: 'Orbitron', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         #gate { position: fixed; inset: 0; background: #000; z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .k-in { padding: 18px; width: 75%; background: #080808; border: 1px solid var(--neon); color: var(--neon); text-align: center; font-family: 'Orbitron'; margin-bottom: 20px; font-size: 18px; outline: none; border-radius: 4px; }
-        .box { width: 90%; max-width: 420px; margin: auto; padding: 35px 20px; border: 1px solid #111; background: radial-gradient(circle, #080808 0%, #000 100%); border-radius: 20px; text-align: center; box-shadow: 0 0 30px rgba(0,242,255,0.05); }
-        .sig { font-size: 26px; font-weight: 900; margin: 20px 0; min-height: 40px; text-transform: uppercase; letter-spacing: 2px; }
-        .acc-badge { display: inline-block; padding: 5px 15px; background: rgba(0,242,255,0.1); border: 1px solid var(--neon); border-radius: 50px; font-size: 12px; color: var(--neon); margin-bottom: 15px; }
-        .dots { display: flex; gap: 6px; margin-top: 25px; justify-content: center; flex-wrap: wrap; }
-        .d { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; }
-        .d0 { background: var(--white); box-shadow: 0 0 10px var(--white); }
+        .box { width: 90%; max-width: 420px; margin: auto; padding: 35px 20px; border: 1px solid #111; background: radial-gradient(circle, #080808 0%, #000 100%); border-radius: 20px; text-align: center; }
+        .sig { font-size: 24px; font-weight: 900; margin: 15px 0; min-height: 40px; text-transform: uppercase; letter-spacing: 1px; }
+        .acc-badge { display: inline-block; padding: 5px 15px; background: rgba(0,242,255,0.1); border: 1px solid var(--neon); border-radius: 50px; font-size: 11px; color: var(--neon); margin-bottom: 10px; }
+        
+        /* Container das Pedras */
+        .dots { display: flex; gap: 8px; margin-top: 25px; justify-content: center; flex-wrap: wrap; }
+        .d { 
+            width: 28px; height: 28px; border-radius: 6px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 12px; font-weight: 900; color: #fff;
+            border: 1px solid rgba(255,255,255,0.1); transition: 0.3s;
+        }
+        .d0 { background: var(--white); color: #000; box-shadow: 0 0 10px var(--white); }
         .d1 { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
-        .d2 { background: #1a1a1a; box-shadow: 0 0 5px #333; }
-        .info { font-size: 9px; color: #444; margin-top: 15px; letter-spacing: 1px; }
+        .d2 { background: #1a1a1a; border: 1px solid #333; }
+        
+        .info { font-size: 9px; color: #444; margin-top: 15px; }
         .pulse { animation: p 0.8s infinite; }
         @keyframes p { 50% { opacity: 0.4; } }
-        button { cursor: pointer; transition: 0.3s; }
-        button:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
 
 <div id="gate">
-    <h2 style="color:var(--neon); letter-spacing: 8px; margin-bottom: 30px;">JARVIS 102</h2>
+    <h2 style="color:var(--neon); letter-spacing: 8px;">JARVIS 102</h2>
     <input type="text" id="pass" class="k-in" placeholder="PASSKEY">
-    <button onclick="boot()" style="width:80%; padding:20px; background:var(--neon); border:none; font-weight:900; font-family:'Orbitron'; border-radius:5px; color:#000;">INICIALIZAR APEX</button>
+    <button onclick="boot()" style="width:80%; padding:20px; background:var(--neon); border:none; font-weight:900; font-family:'Orbitron'; border-radius:5px;">INICIALIZAR</button>
 </div>
 
 <div style="padding: 10px; border-bottom: 1px solid #111; font-size: 8px; color: var(--neon); display: flex; justify-content: space-between;">
-    <span>CORE_ANALITICO: v8.5</span>
+    <span>ANALYSIS_VISION: v8.6</span>
     <span id="st">OFFLINE</span>
 </div>
 
 <div class="box">
     <div class="acc-badge" id="acc">CONFIANÇA: --%</div>
-    <div class="sig" id="out">AGUARDANDO DADOS</div>
-    <div id="msg" style="font-size: 10px; color: #666; text-transform: uppercase;">Sincronizando via WebSocket...</div>
+    <div class="sig" id="out">SINCRONIZANDO...</div>
+    <div id="msg" style="font-size: 9px; color: #666;">AGUARDANDO LEITURA DAS PEDRAS</div>
     <div class="dots" id="stream"></div>
-    <div class="info" id="extra">MÉTODO NEXUS • INVISÍVEL E PROTEGIDO</div>
+    <div class="info">MÉTODO NEXUS • DATA DECODED</div>
 </div>
 
 <script>
-    const CORE = {
-        KEY: "jarvis102",
-        LOG: [],
-        MAX: 50,
-        ws: null
-    };
+    const CORE = { KEY: "jarvis102", LOG: [], MAX: 30, ws: null };
 
     function boot() {
         if (document.getElementById('pass').value.trim().toLowerCase() === CORE.KEY) {
@@ -66,27 +67,22 @@
         const wsUrl = "wss://api-v2.blaze.com/roulette_games";
         CORE.ws = new WebSocket(wsUrl);
 
-        CORE.ws.onopen = () => {
-            st.innerText = "LIVE_SYNC ACTIVE";
-            st.style.color = "var(--signal)";
-        };
+        CORE.ws.onopen = () => { st.innerText = "LIVE_SYNC ACTIVE"; st.style.color = "var(--signal)"; };
 
         CORE.ws.onmessage = (event) => {
             try {
                 const msg = JSON.parse(event.data);
                 let results = [];
-                
-                // Normalização de dados para o novo motor
                 if (msg.type === 'double.tick' || msg.type === 'roulette.tick') results = [msg.data || msg.payload];
                 else if (Array.isArray(msg)) results = msg;
                 else if (msg.recent || msg.history) results = msg.recent || msg.history;
-                else if (msg.roll) results = [msg];
+                else if (msg.roll || msg.roll === 0) results = [msg];
 
                 results.forEach(item => {
                     let color = (item.color === 'white' || item.color === 0) ? 0 : (item.color === 'red' || item.color === 1) ? 1 : 2;
-                    // Evita duplicata por tempo de servidor
-                    if (CORE.LOG.length === 0 || item.roll !== CORE.LOG[0].roll) {
-                        CORE.LOG.unshift({ roll: item.roll, color: color });
+                    // Verifica se a pedra já existe no histórico recente para não duplicar
+                    if (CORE.LOG.length === 0 || item.roll !== CORE.LOG[0].roll || Date.now() - CORE.LOG[0].time > 5000) {
+                        CORE.LOG.unshift({ roll: item.roll, color: color, time: Date.now() });
                         if (CORE.LOG.length > CORE.MAX) CORE.LOG.pop();
                         think();
                     }
@@ -94,85 +90,42 @@
             } catch (e) {}
         };
 
-        CORE.ws.onclose = () => { 
-            st.innerText = "RECONNECTING..."; 
-            setTimeout(connect, 3000); 
-        };
+        CORE.ws.onclose = () => { setTimeout(connect, 3000); };
     }
 
     function think() {
         const data = CORE.LOG;
-        const out = document.getElementById('out');
-        const acc = document.getElementById('acc');
-        const msg = document.getElementById('msg');
-        
-        // Atualiza Histórico Visual
-        document.getElementById('stream').innerHTML = data.slice(0, 15).map(x => `<div class="d d${x.color}"></div>`).join('');
+        // Renderiza o número (pedra) dentro de cada div
+        document.getElementById('stream').innerHTML = data.slice(0, 14).map(x => `
+            <div class="d d${x.color}">${x.roll}</div>
+        `).join('');
 
-        if (data.length < 10) {
-            out.innerText = "CALIBRANDO...";
-            return;
-        }
+        if (data.length < 5) return;
 
-        // --- MOTOR ANALÍTICO APEX ---
         const d10 = data.slice(0, 10);
         const reds = d10.filter(x => x.color === 1).length;
         const blacks = d10.filter(x => x.color === 2).length;
         const lastWhite = data.findIndex(x => x.color === 0);
 
         let signal = "ANALISANDO";
-        let colorOut = "#444";
         let confidence = "--%";
-        let detail = "Mesa em equilíbrio estatístico";
 
-        // GATILHO 1: EXAUSTÃO DE COR (97% Assertividade)
-        if (reds >= 8) {
-            signal = "ENTRAR NO PRETO";
-            colorOut = "var(--white)";
-            confidence = "97.8%";
-            detail = "Exaustão de Vermelho detectada";
-            beep(800);
-        } else if (blacks >= 8) {
-            signal = "ENTRAR NO VERMELHO";
-            colorOut = "var(--danger)";
-            confidence = "97.4%";
-            detail = "Exaustão de Preto detectada";
-            beep(800);
-        }
-        // GATILHO 2: VÁCUO QUÂNTICO (95% Assertividade para Branco)
-        else if (lastWhite >= 14 || lastWhite === -1) {
-            signal = "PROTEÇÃO BRANCO ⚪";
-            colorOut = "var(--white)";
-            confidence = "95.5%";
-            detail = "Vácuo de branco atingiu nível crítico";
-            beep(1200);
-        } 
-        // GATILHO 3: QUEBRA DE SEQUÊNCIA CURTA
-        else if (data[0].color === data[1].color && data[1].color === data[2].color && data[2].color === data[3].color) {
-            const target = data[0].color === 1 ? "PRETO" : "VERMELHO";
-            signal = `QUEBRA NO ${target}`;
-            colorOut = target === "PRETO" ? "#fff" : "var(--danger)";
-            confidence = "92.0%";
-            detail = "Padrão de repetição identificado";
-        }
+        if (reds >= 8) { signal = "ENTRAR NO PRETO"; confidence = "97.8%"; beep(800); }
+        else if (blacks >= 8) { signal = "ENTRAR NO VERMELHO"; confidence = "97.4%"; beep(800); }
+        else if (lastWhite >= 14 || lastWhite === -1) { signal = "PROTEGER BRANCO"; confidence = "95.5%"; beep(1200); }
 
-        out.innerHTML = signal;
-        out.style.color = colorOut;
-        acc.innerText = `CONFIANÇA: ${confidence}`;
-        msg.innerText = detail;
-        if(parseFloat(confidence) > 94) out.classList.add('pulse');
-        else out.classList.remove('pulse');
+        document.getElementById('out').innerText = signal;
+        document.getElementById('acc').innerText = `CONFIANÇA: ${confidence}`;
+        document.getElementById('msg').innerText = `Última pedra lida: ${data[0].roll}`;
     }
 
     function beep(f) {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             const o = ctx.createOscillator();
-            const g = ctx.createGain();
-            o.connect(g); g.connect(ctx.destination);
+            o.connect(ctx.destination);
             o.frequency.value = f;
-            g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5);
-            o.start(); o.stop(ctx.currentTime + 0.5);
+            o.start(); o.stop(ctx.currentTime + 0.3);
         } catch(e) {}
     }
 </script>
